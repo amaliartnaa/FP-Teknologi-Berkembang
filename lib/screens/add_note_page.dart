@@ -3,8 +3,7 @@ import '../models/note.dart';
 
 class AddNotePage extends StatefulWidget {
   final Note? note;
-
-  const AddNotePage({Key? key, this.note}) : super(key: key);
+  const AddNotePage({super.key, this.note});
 
   @override
   State<AddNotePage> createState() => _AddNotePageState();
@@ -20,7 +19,7 @@ class _AddNotePageState extends State<AddNotePage> {
   DateTime? _createdAt;
 
   // Use a Set to store tags for uniqueness and easier editing
-  Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
+  final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
 
   @override
   void initState() {
@@ -255,7 +254,7 @@ class _AddNotePageState extends State<AddNotePage> {
                       ..._tags.map((tag) => PopupMenuItem<String>(
                             value: 'edit:$tag',
                             child: Row(children: [
-                              Icon(Icons.edit),
+                              const Icon(Icons.edit),
                               Text('Edit $tag')
                             ]),
                           )),

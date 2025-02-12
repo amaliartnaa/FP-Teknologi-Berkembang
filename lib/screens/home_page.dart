@@ -4,7 +4,7 @@ import 'add_note_page.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -16,6 +16,7 @@ class _HomePageState extends State<HomePage> {
   String selectedTag = 'All';
   TextEditingController searchController = TextEditingController();
   Set<String> availableTags = {'Math', 'Physics', 'Chemistry', 'Biology'};
+  String sortOrder = 'desc'; // Default sorting order (descending)
 
   @override
   void initState() {
@@ -40,12 +41,25 @@ class _HomePageState extends State<HomePage> {
       ),
     ];
     filteredNotes = notes;
+    _sortNotes();
     _updateAvailableTags();
   }
 
   void _updateAvailableTags() {
     setState(() {
       availableTags = notes.map((note) => note.tag).toSet();
+    });
+  }
+
+  void _sortNotes() {
+    setState(() {
+      if (sortOrder == 'asc') {
+        filteredNotes
+            .sort((a, b) => a.createdAt.compareTo(b.createdAt)); // Ascending
+      } else {
+        filteredNotes
+            .sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Descending
+      }
     });
   }
 
@@ -162,14 +176,37 @@ class _HomePageState extends State<HomePage> {
                                   });
                                 },
                               ),
-                            ))
-                        .toList(),
+                            )),
                   ],
                 ),
               ),
             ],
           ),
         ),
+        actions: [
+          // Dropdown for sorting
+          PopupMenuButton<String>(
+            onSelected: (String value) {
+              setState(() {
+                sortOrder = value;
+                _sortNotes(); // Re-sort notes
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'asc',
+                  child: Text('Sort by Date (Oldest First)'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'desc',
+                  child: Text('Sort by Date (Newest First)'),
+                ),
+              ];
+            },
+            icon: const Icon(Icons.sort),
+          ),
+        ],
       ),
       body: ListView.builder(
         itemCount: filteredNotes.length,

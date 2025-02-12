@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
 
@@ -9,6 +10,10 @@ class NoteDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Format the updatedAt timestamp
+    final formattedDate = DateFormat('EEEE, MMMM d, y').format(note.updatedAt); // Example: "Tuesday, October 10, 2023"
+    final formattedTime = DateFormat('h:mm a').format(note.updatedAt); // Example: "10:30 AM"
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Note Details'),
@@ -23,8 +28,7 @@ class NoteDetailPage extends StatelessWidget {
                 ),
               );
               if (result != null) {
-                Navigator.pop(
-                    context, result); // Return the updated Note object
+                Navigator.pop(context, result); // Return the updated Note object
               }
             },
           ),
@@ -46,12 +50,10 @@ class NoteDetailPage extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context); // Close dialog
-                          Navigator.pop(
-                              context, 'delete'); // Return 'delete' string
+                          Navigator.pop(context, 'delete'); // Return 'delete' string
                         },
                         child: const Text('Delete',
-                            style: TextStyle(
-                                color: Colors.red)), // Styled delete button
+                            style: TextStyle(color: Colors.red)), // Styled delete button
                       ),
                     ],
                   );
@@ -76,8 +78,17 @@ class NoteDetailPage extends StatelessWidget {
             const SizedBox(height: 16.0),
             Text(note.content),
             const SizedBox(height: 16.0),
+            // Display formatted date and time
             Text(
-              'Last updated: ${note.updatedAt.toString().split('.')[0]}',
+              'Last updated:',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Text(
+              formattedDate,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Text(
+              formattedTime,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
