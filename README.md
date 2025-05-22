@@ -9,7 +9,7 @@
 
 ## 📝 Deskripsi Singkat
 
-SiCatat adalah aplikasi mobile berbasis Flutter yang memungkinkan pengguna untuk menambah, melihat, mengedit, dan menghapus catatan. Aplikasi ini dikembangkan sebagai final project mata kuliah **Teknologi Berkembang**.
+SiCatat adalah aplikasi mobile berbasis Flutter yang memiliki fitur utama berupa CRUD (Create, Read, Update, Delete) untuk mencatat dan mengelola catatan. Aplikasi ini dikembangkan sebagai final project mata kuliah **Teknologi Berkembang**.
 
 ## 🚀 Quick Start
 
