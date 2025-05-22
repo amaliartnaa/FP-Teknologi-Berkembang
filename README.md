@@ -1,16 +1,79 @@
-# notes_crud_app
+# 📒 CRUD Notes
 
-A new Flutter project.
+## 👥 Anggota Kelompok
+- Andika
+- Fauzan
+- Adit
+- Amel
+- Rafa
 
-## Getting Started
+## 📝 Deskripsi Singkat
 
-This project is a starting point for a Flutter application.
+CRUD Notes adalah aplikasi mobile berbasis Flutter yang memungkinkan pengguna untuk menambah, melihat, mengedit, dan menghapus catatan. Aplikasi ini dikembangkan sebagai final project mata kuliah **Teknologi Berkembang**.
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Quick Start
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Ikuti langkah-langkah berikut untuk menjalankan project secara lokal:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. **Clone repository:**
+
+    ```bash
+    git clone https://github.com/amaliartnaa/FP-Teknologi-Berkembang.git
+    ```
+
+2. **Masuk ke folder project:**
+
+    ```bash
+    cd FP-Teknologi-Berkembang
+    ```
+
+3. **Install dependencies:**
+
+    ```bash
+    flutter pub get
+    ```
+
+4. **Jalankan aplikasi di emulator atau device:**
+
+    ```bash
+    flutter run# CRUD Notes
+
+## Team Members
+- Andika
+- Fauzan
+- Adit
+- Amel
+- Rafa
+
+## Brief Description
+
+CRUD Notes is a Flutter-based mobile application that allows users to add, view, edit, and delete notes. This application was developed as a final project for the **Emerging Technology** course.
+
+## Quick Start
+
+Follow these steps to run the project locally:
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/amaliartnaa/FP-Teknologi-Berkembang.git
+```
+
+### 2. Enter the Project Folder
+
+```bash
+cd FP-Teknologi-Berkembang
+```
+
+### 3. Install Dependencies
+
+```bash
+flutter pub get
+```
+
+### 4. Run the Application on an Emulator or Device
+
+```bash
+flutter run
+```
+    ```
