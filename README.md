@@ -1,4 +1,4 @@
-# 📒 CRUD Notes
+# 📒 SiCatat
 
 ## 👥 Anggota Kelompok
 - Andika
