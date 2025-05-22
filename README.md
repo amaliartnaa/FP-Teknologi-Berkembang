@@ -1,11 +1,11 @@
 # 📒 CRUD Notes
 
 ## 👥 Anggota Kelompok
-- Andika
-- Fauzan
-- Adit
-- Amel
-- Rafa
+- Andika Cahya S – 5026221013
+- Muhammad Fauzan – 5026221080
+- Adithya Eka Pramudita – 5026221164
+- Ratna Amalia Azzahra – 5026221209
+- Rafa Akbar – 5026221213
 
 ## 📝 Deskripsi Singkat
 
