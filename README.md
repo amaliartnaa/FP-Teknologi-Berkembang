@@ -18,13 +18,13 @@ Ikuti langkah-langkah berikut untuk menjalankan project secara lokal:
 1. **Clone repository:**
 
     ```bash
-    git clone https://github.com/username/crud-notes.git
+    git clone https://github.com/amaliartnaa/FP-Teknologi-Berkembang.git
     ```
 
 2. **Masuk ke folder project:**
 
     ```bash
-    cd crud-notes
+    cd FP-Teknologi-Berkembang
     ```
 
 3. **Install dependencies:**
