@@ -1,126 +1,174 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
+import 'app_drawer.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final ValueNotifier<ThemeMode> themeNotifier;
+  const HomePage({super.key, required this.themeNotifier});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Note> notes = [];
+  // Dalam aplikasi nyata, data ini akan diambil dari database.
+  // Untuk sekarang, kita gunakan list lokal di sini.
+  List<Note> notes = [
+    Note(
+      id: '1',
+      title: 'Sample Math Note',
+      content: 'This is a sample math note about calculus.',
+      tag: 'Math',
+      createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+    ),
+    Note(
+      id: '2',
+      title: 'Sample Physics Note',
+      content: 'This is a sample physics note about thermodynamics.',
+      tag: 'Physics',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    ),
+     Note(
+      id: '3',
+      title: 'Archived Note Example',
+      content: 'This note is archived.',
+      tag: 'Chemistry',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isArchived: true,
+    ),
+  ];
+
   List<Note> filteredNotes = [];
   String selectedTag = 'All';
   TextEditingController searchController = TextEditingController();
-  Set<String> availableTags = {'Math', 'Physics', 'Chemistry', 'Biology'};
-  String sortOrder = 'desc'; // Default sorting order (descending)
+  Set<String> availableTags = {};
+  String sortOrder = 'desc';
 
   @override
   void initState() {
     super.initState();
-    // Initialize with sample data (or load from storage)
-    notes = [
-      Note(
-        id: '1',
-        title: 'Sample Math Note',
-        content: 'This is a sample math note',
-        tag: 'Math',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Note(
-        id: '2',
-        title: 'Sample Physics Note',
-        content: 'This is a sample physics note',
-        tag: 'Physics',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-    filteredNotes = notes;
-    _sortNotes();
-    _updateAvailableTags();
+    _updateFilteredNotes();
   }
 
-  void _updateAvailableTags() {
+  void _onNoteUpdated(Note updatedNote) {
     setState(() {
-      availableTags = notes.map((note) => note.tag).toSet();
+      final index = notes.indexWhere((n) => n.id == updatedNote.id);
+      if (index != -1) {
+        notes[index] = updatedNote;
+      }
+      _updateFilteredNotes();
     });
+  }
+
+  void _updateFilteredNotes() {
+    setState(() {
+      List<Note> activeNotes = notes
+          .where((note) => !note.isArchived && !note.isTrashed)
+          .toList();
+
+      List<Note> tagFiltered;
+      if (selectedTag == 'All') {
+        tagFiltered = activeNotes;
+      } else {
+        tagFiltered =
+            activeNotes.where((note) => note.tag == selectedTag).toList();
+      }
+
+      final query = searchController.text.toLowerCase();
+      if (query.isEmpty) {
+        filteredNotes = tagFiltered;
+      } else {
+        filteredNotes = tagFiltered
+            .where((note) =>
+                note.title.toLowerCase().contains(query) ||
+                note.content.toLowerCase().contains(query))
+            .toList();
+      }
+      _updateAvailableTags(activeNotes);
+      _sortNotes();
+    });
+  }
+  
+  void _updateAvailableTags(List<Note> activeNotes) {
+    availableTags = activeNotes.map((note) => note.tag).toSet();
   }
 
   void _sortNotes() {
-    setState(() {
-      if (sortOrder == 'asc') {
-        filteredNotes
-            .sort((a, b) => a.createdAt.compareTo(b.createdAt)); // Ascending
-      } else {
-        filteredNotes
-            .sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Descending
-      }
-    });
-  }
-
-  void filterNotes(String query) {
-    setState(() {
-      final lowerCaseQuery = query.toLowerCase(); // Store lowercase query
-
-      if (selectedTag == 'All') {
-        filteredNotes = notes
-            .where((note) =>
-                note.title.toLowerCase().contains(lowerCaseQuery) ||
-                note.content.toLowerCase().contains(lowerCaseQuery))
-            .toList();
-      } else {
-        filteredNotes = notes
-            .where((note) =>
-                note.tag == selectedTag &&
-                (note.title.toLowerCase().contains(lowerCaseQuery) ||
-                    note.content.toLowerCase().contains(lowerCaseQuery)))
-            .toList();
-      }
-    });
+    if (sortOrder == 'asc') {
+      filteredNotes.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+    } else {
+      filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    }
   }
 
   Future<void> _addOrEditNote(Note? note) async {
-    final result = await Navigator.push(
+    final result = await Navigator.push<Note>(
       context,
       MaterialPageRoute(
         builder: (context) => AddNotePage(note: note),
       ),
     );
-
-    if (result != null && result is Note) {
+    if (result != null) {
       setState(() {
         if (note != null) {
-          // Editing existing note
-          final index = notes.indexWhere((n) => n.id == note.id);
+          final index = notes.indexWhere((n) => n.id == result.id);
           if (index != -1) {
             notes[index] = result;
           }
         } else {
-          // Adding new note
-          result.id = DateTime.now().toString(); // Simple ID generation
+          result.id = DateTime.now().millisecondsSinceEpoch.toString();
           notes.add(result);
         }
-        _updateAvailableTags(); // Update available tags
-        filterNotes(searchController.text);
+        _updateFilteredNotes();
       });
     }
   }
 
-  Future<void> _deleteNote(Note note) async {
+  void _moveToTrash(Note note) {
     setState(() {
-      notes.removeWhere((n) => n.id == note.id);
-      _updateAvailableTags(); // Update available tags after deletion
-      if (!availableTags.contains(selectedTag) && selectedTag != 'All') {
-        selectedTag =
-            'All'; // Reset to 'All' if the selected tag no longer exists
-      }
-      filterNotes(searchController.text);
+      note.isTrashed = true;
+      _updateFilteredNotes();
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Note moved to trash'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              note.isTrashed = false;
+              _updateFilteredNotes();
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _archiveNote(Note note) {
+    setState(() {
+      note.isArchived = true;
+      _updateFilteredNotes();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Note moved to archive'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              note.isArchived = false;
+              _updateFilteredNotes();
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -136,15 +184,14 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: searchController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Search notes...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).scaffoldBackgroundColor,
                   ),
-                  onChanged: (value) =>
-                      filterNotes(value), // Directly call filterNotes
+                  onChanged: (value) => _updateFilteredNotes(),
                 ),
               ),
               SingleChildScrollView(
@@ -158,25 +205,24 @@ class _HomePageState extends State<HomePage> {
                       onSelected: (bool selected) {
                         setState(() {
                           selectedTag = 'All';
-                          filterNotes(searchController.text);
+                          _updateFilteredNotes();
                         });
                       },
                     ),
                     const SizedBox(width: 8.0),
-                    ...availableTags
-                        .map((tag) => Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: FilterChip(
-                                selected: selectedTag == tag,
-                                label: Text(tag),
-                                onSelected: (bool selected) {
-                                  setState(() {
-                                    selectedTag = tag;
-                                    filterNotes(searchController.text);
-                                  });
-                                },
-                              ),
-                            )),
+                    ...availableTags.map((tag) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: FilterChip(
+                            selected: selectedTag == tag,
+                            label: Text(tag),
+                            onSelected: (bool selected) {
+                              setState(() {
+                                selectedTag = tag;
+                                _updateFilteredNotes();
+                              });
+                            },
+                          ),
+                        )),
                   ],
                 ),
               ),
@@ -184,72 +230,63 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          // Dropdown for sorting
           PopupMenuButton<String>(
             onSelected: (String value) {
               setState(() {
                 sortOrder = value;
-                _sortNotes(); // Re-sort notes
+                _sortNotes();
               });
             },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                  value: 'asc',
-                  child: Text('Sort by Date (Oldest First)'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'desc',
-                  child: Text('Sort by Date (Newest First)'),
-                ),
-              ];
-            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(value: 'desc', child: Text('Sort by Newest')),
+              const PopupMenuItem(value: 'asc', child: Text('Sort by Oldest')),
+            ],
             icon: const Icon(Icons.sort),
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: filteredNotes.length,
-        itemBuilder: (context, index) {
-          final note = filteredNotes[index];
-          return Card(
-            margin: const EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text(note.title),
-              subtitle: Text(
-                note.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: Chip(label: Text(note.tag)),
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NoteDetailPage(note: note),
+      drawer: AppDrawer(
+          notes: notes,
+          onNoteUpdated: _onNoteUpdated,
+          themeNotifier: widget.themeNotifier),
+      body: filteredNotes.isEmpty
+          ? const Center(
+              child: Text("No notes found. Tap '+' to create one!",
+                  style: TextStyle(fontSize: 18, color: Colors.grey)))
+          : ListView.builder(
+              itemCount: filteredNotes.length,
+              itemBuilder: (context, index) {
+                final note = filteredNotes[index];
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(note.title),
+                    subtitle: Text(
+                      note.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Chip(label: Text(note.tag)),
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NoteDetailPage(note: note),
+                        ),
+                      );
+                      if (result is Note) {
+                        _onNoteUpdated(result);
+                      } else if (result == 'delete') {
+                        _moveToTrash(note);
+                      } else if (result == 'archive') {
+                        _archiveNote(note);
+                      }
+                    },
+                    onLongPress: () => _showNoteOptions(context, note),
                   ),
                 );
-
-                if (result != null) {
-                  if (result == 'delete') {
-                    _deleteNote(note);
-                  } else if (result is Note) {
-                    setState(() {
-                      final index = notes.indexWhere((n) => n.id == result.id);
-                      if (index != -1) {
-                        notes[index] = result;
-                        _updateAvailableTags();
-                        filterNotes(searchController.text);
-                      }
-                    });
-                  }
-                }
               },
-              onLongPress: () => _showNoteOptions(context, note),
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEditNote(null),
         child: const Icon(Icons.add),
@@ -274,35 +311,20 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title:
-                    const Text('Delete', style: TextStyle(color: Colors.red)),
+                leading: const Icon(Icons.archive),
+                title: const Text('Archive'),
                 onTap: () {
                   Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Delete Note'),
-                        content: const Text(
-                            'Are you sure you want to delete this note?'),
-                        actions: [
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          TextButton(
-                            child: const Text('Delete',
-                                style: TextStyle(color: Colors.red)),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _deleteNote(note);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  _archiveNote(note);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Move to Trash',
+                    style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _moveToTrash(note);
                 },
               ),
             ],

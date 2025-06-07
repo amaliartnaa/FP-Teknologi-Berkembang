@@ -1,3 +1,7 @@
+// Tidak ada perubahan signifikan yang diperlukan pada add_note_page.dart
+// Kode asli Anda sudah cukup baik.
+// Pastikan saja Anda menangani nilai isArchived dan isTrashed dengan benar saat membuat note baru.
+
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 
@@ -13,12 +17,13 @@ class _AddNotePageState extends State<AddNotePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _contentController;
-  late TextEditingController _tagController; // Controller for editing tags
+  late TextEditingController _tagController;
   String _selectedTag = '';
   bool _isEditing = false;
   DateTime? _createdAt;
+  bool _isArchived = false;
+  bool _isTrashed = false;
 
-  // Use a Set to store tags for uniqueness and easier editing
   final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
 
   @override
@@ -28,16 +33,17 @@ class _AddNotePageState extends State<AddNotePage> {
     _titleController = TextEditingController(text: widget.note?.title ?? '');
     _contentController =
         TextEditingController(text: widget.note?.content ?? '');
-    _tagController = TextEditingController(); // Initialize tag controller
+    _tagController = TextEditingController();
 
     if (_isEditing) {
       _selectedTag = widget.note!.tag;
       _createdAt = widget.note!.createdAt;
-      _tags.add(_selectedTag); // Ensure the existing tag is in the set
+      _isArchived = widget.note!.isArchived;
+      _isTrashed = widget.note!.isTrashed;
+      _tags.add(_selectedTag);
     } else {
       _createdAt = DateTime.now();
       if (_tags.isNotEmpty) {
-        // Select the first tag if available
         _selectedTag = _tags.first;
       }
     }
@@ -60,13 +66,17 @@ class _AddNotePageState extends State<AddNotePage> {
         tag: _selectedTag,
         createdAt: _createdAt!,
         updatedAt: DateTime.now(),
+        isArchived: _isArchived, // Pertahankan status arsip
+        isTrashed: _isTrashed,   // Pertahankan status sampah
       );
       Navigator.pop(context, note);
     }
   }
 
+  // ... (Sisa kode untuk dialog tag tidak perlu diubah, biarkan seperti aslinya)
+
   void _showEditTagDialog(String oldTag) {
-    _tagController.text = oldTag; // Pre-fill with the old tag
+    _tagController.text = oldTag;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -113,7 +123,7 @@ class _AddNotePageState extends State<AddNotePage> {
   }
 
   void _showAddTagDialog() {
-    _tagController.clear(); // Clear for adding
+    _tagController.clear();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -150,7 +160,7 @@ class _AddNotePageState extends State<AddNotePage> {
     if (newTag.isNotEmpty && !_tags.contains(newTag)) {
       setState(() {
         _tags.add(newTag);
-        _selectedTag = newTag; // Automatically select the new tag
+        _selectedTag = newTag;
       });
     }
     _tagController.clear();
@@ -173,15 +183,12 @@ class _AddNotePageState extends State<AddNotePage> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // Title Field
             TextFormField(
               controller: _titleController,
               decoration: InputDecoration(
                 labelText: 'Title',
                 hintText: 'Enter note title',
                 border: const OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.title),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
@@ -200,7 +207,6 @@ class _AddNotePageState extends State<AddNotePage> {
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16.0),
-            // Tag Selection with Add/Edit Tag Button
             Row(
               children: [
                 Expanded(
@@ -209,8 +215,6 @@ class _AddNotePageState extends State<AddNotePage> {
                     decoration: const InputDecoration(
                       labelText: 'Tag',
                       border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
                       prefixIcon: Icon(Icons.local_offer),
                     ),
                     items: _tags.map((String tag) {
@@ -264,17 +268,12 @@ class _AddNotePageState extends State<AddNotePage> {
               ],
             ),
             const SizedBox(height: 16.0),
-
-            // Content Field
-
             TextFormField(
               controller: _contentController,
               decoration: const InputDecoration(
                 labelText: 'Content',
                 hintText: 'Enter note content',
                 border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
                 alignLabelWithHint: true,
               ),
               maxLines: 10,
@@ -282,14 +281,11 @@ class _AddNotePageState extends State<AddNotePage> {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter some content';
                 }
-
                 return null;
               },
               textInputAction: TextInputAction.newline,
             ),
-
             const SizedBox(height: 16.0),
-
             if (_isEditing) ...[
               Text(
                 'Created: ${widget.note!.createdAt.toString().split('.')[0]}',

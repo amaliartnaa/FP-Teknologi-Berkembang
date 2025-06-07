@@ -5,6 +5,8 @@ class Note {
   String tag;
   DateTime createdAt;
   DateTime updatedAt;
+  bool isArchived;
+  bool isTrashed;
 
   Note({
     this.id,
@@ -13,6 +15,8 @@ class Note {
     required this.tag,
     required this.createdAt,
     required this.updatedAt,
+    this.isArchived = false,
+    this.isTrashed = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class Note {
       'tag': tag,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'isArchived': isArchived,
+      'isTrashed': isTrashed,
     };
   }
 
@@ -34,6 +40,8 @@ class Note {
       tag: map['tag'],
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
+      isArchived: map['isArchived'] ?? false,
+      isTrashed: map['isTrashed'] ?? false,
     );
   }
 }
