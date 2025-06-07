@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import '../models/note.dart';
 import 'app_drawer.dart';
-import 'login_page.dart'; // <-- DITAMBAHKAN: Untuk mengakses halaman login
+import 'login_page.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
-  final List<Note> notes;
-  final Function(Note) onNoteUpdated;
 
   const SettingsPage({
     super.key,
     required this.themeNotifier,
-    required this.notes,
-    required this.onNoteUpdated,
   });
 
   @override
@@ -20,7 +15,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  // DITAMBAHKAN: Fungsi untuk menampilkan dialog konfirmasi logout
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -32,13 +26,12 @@ class _SettingsPageState extends State<SettingsPage> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Logout', style: TextStyle(color: Colors.red)),
               onPressed: () {
-                // Pindah ke halaman login dan hapus semua halaman sebelumnya
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
                       builder: (context) =>
@@ -60,8 +53,6 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Settings'),
       ),
       drawer: AppDrawer(
-        notes: widget.notes,
-        onNoteUpdated: widget.onNoteUpdated,
         themeNotifier: widget.themeNotifier,
       ),
       body: ListView(
@@ -84,8 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: Text('College Notes App v1.0'),
             leading: Icon(Icons.info),
           ),
-          const Divider(), // <-- DITAMBAHKAN: Garis pemisah
-          // DITAMBAHKAN: Menu untuk Logout
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Logout', style: TextStyle(color: Colors.red)),

@@ -5,17 +5,7 @@ import 'app_drawer.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  final ValueNotifier<ThemeMode> themeNotifier;
-  const HomePage({super.key, required this.themeNotifier});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  // Dalam aplikasi nyata, data ini akan diambil dari database.
-  // Untuk sekarang, kita gunakan list lokal di sini.
-  List<Note> notes = [
+  static List<Note> notes = [
     Note(
       id: '1',
       title: 'Sample Math Note',
@@ -32,7 +22,7 @@ class _HomePageState extends State<HomePage> {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     ),
-     Note(
+    Note(
       id: '3',
       title: 'Archived Note Example',
       content: 'This note is archived.',
@@ -43,9 +33,17 @@ class _HomePageState extends State<HomePage> {
     ),
   ];
 
+  final ValueNotifier<ThemeMode> themeNotifier;
+  const HomePage({super.key, required this.themeNotifier});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   List<Note> filteredNotes = [];
   String selectedTag = 'All';
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   Set<String> availableTags = {};
   String sortOrder = 'desc';
 
@@ -55,19 +53,9 @@ class _HomePageState extends State<HomePage> {
     _updateFilteredNotes();
   }
 
-  void _onNoteUpdated(Note updatedNote) {
-    setState(() {
-      final index = notes.indexWhere((n) => n.id == updatedNote.id);
-      if (index != -1) {
-        notes[index] = updatedNote;
-      }
-      _updateFilteredNotes();
-    });
-  }
-
   void _updateFilteredNotes() {
     setState(() {
-      List<Note> activeNotes = notes
+      List<Note> activeNotes = HomePage.notes
           .where((note) => !note.isArchived && !note.isTrashed)
           .toList();
 
@@ -93,7 +81,7 @@ class _HomePageState extends State<HomePage> {
       _sortNotes();
     });
   }
-  
+
   void _updateAvailableTags(List<Note> activeNotes) {
     availableTags = activeNotes.map((note) => note.tag).toSet();
   }
@@ -114,18 +102,15 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (result != null) {
-      setState(() {
-        if (note != null) {
-          final index = notes.indexWhere((n) => n.id == result.id);
-          if (index != -1) {
-            notes[index] = result;
-          }
-        } else {
-          result.id = DateTime.now().millisecondsSinceEpoch.toString();
-          notes.add(result);
+      if (note != null) {
+        final index = HomePage.notes.indexWhere((n) => n.id == result.id);
+        if (index != -1) {
+          HomePage.notes[index] = result;
         }
-        _updateFilteredNotes();
-      });
+      } else {
+        HomePage.notes.add(result);
+      }
+      _updateFilteredNotes();
     }
   }
 
@@ -134,20 +119,7 @@ class _HomePageState extends State<HomePage> {
       note.isTrashed = true;
       _updateFilteredNotes();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Note moved to trash'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            setState(() {
-              note.isTrashed = false;
-              _updateFilteredNotes();
-            });
-          },
-        ),
-      ),
-    );
+    // SnackBar bisa ditambahkan di sini jika perlu
   }
 
   void _archiveNote(Note note) {
@@ -155,20 +127,7 @@ class _HomePageState extends State<HomePage> {
       note.isArchived = true;
       _updateFilteredNotes();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Note moved to archive'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            setState(() {
-              note.isArchived = false;
-              _updateFilteredNotes();
-            });
-          },
-        ),
-      ),
-    );
+    // SnackBar bisa ditambahkan di sini jika perlu
   }
 
   @override
@@ -245,10 +204,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      drawer: AppDrawer(
-          notes: notes,
-          onNoteUpdated: _onNoteUpdated,
-          themeNotifier: widget.themeNotifier),
+      drawer: AppDrawer(themeNotifier: widget.themeNotifier),
       body: filteredNotes.isEmpty
           ? const Center(
               child: Text("No notes found. Tap '+' to create one!",
@@ -267,6 +223,7 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: Chip(label: Text(note.tag)),
+                    // --- PERBAIKAN LOGIKA ADA DI SINI ---
                     onTap: () async {
                       final result = await Navigator.push(
                         context,
@@ -274,12 +231,19 @@ class _HomePageState extends State<HomePage> {
                           builder: (context) => NoteDetailPage(note: note),
                         ),
                       );
-                      if (result is Note) {
-                        _onNoteUpdated(result);
+
+                      // Cek hasil yang dikembalikan dari NoteDetailPage
+                      if (result == 'archive') {
+                        _archiveNote(note);
                       } else if (result == 'delete') {
                         _moveToTrash(note);
-                      } else if (result == 'archive') {
-                        _archiveNote(note);
+                      } else if (result is Note) {
+                        // Ini menangani kasus jika ada perubahan dari halaman edit
+                        final index = HomePage.notes.indexWhere((n) => n.id == result.id);
+                        if (index != -1) {
+                            HomePage.notes[index] = result;
+                            _updateFilteredNotes();
+                        }
                       }
                     },
                     onLongPress: () => _showNoteOptions(context, note),

@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
-import '../models/note.dart';
 import 'app_drawer.dart';
+import 'home_page.dart';
 
 class StatsPage extends StatelessWidget {
-  final List<Note> notes;
-  final Function(Note) onNoteUpdated;
   final ValueNotifier<ThemeMode> themeNotifier;
 
   const StatsPage({
     super.key,
-    required this.notes,
-    required this.onNoteUpdated,
     required this.themeNotifier,
   });
 
   Map<String, int> _getNoteCountByTag() {
     final Map<String, int> tagCount = {};
-    for (final note in notes.where((n) => !n.isTrashed)) {
+    for (final note in HomePage.notes.where((n) => !n.isTrashed)) {
       tagCount.update(note.tag, (value) => value + 1, ifAbsent: () => 1);
     }
     return tagCount;
@@ -24,18 +20,16 @@ class StatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalNotes = notes.where((n) => !n.isTrashed && !n.isArchived).length;
-    final archivedNotes = notes.where((n) => n.isArchived).length;
-    final trashedNotes = notes.where((n) => n.isTrashed).length;
-    final tagCounts = _getNoteCountByTag();
+    final int totalNotes = HomePage.notes.where((n) => !n.isTrashed && !n.isArchived).length;
+    final int archivedNotes = HomePage.notes.where((n) => n.isArchived).length;
+    final int trashedNotes = HomePage.notes.where((n) => n.isTrashed).length;
+    final Map<String, int> tagCounts = _getNoteCountByTag();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Statistics'),
       ),
       drawer: AppDrawer(
-        notes: notes,
-        onNoteUpdated: onNoteUpdated,
         themeNotifier: themeNotifier,
       ),
       body: ListView(

@@ -1,7 +1,3 @@
-// Tidak ada perubahan signifikan yang diperlukan pada add_note_page.dart
-// Kode asli Anda sudah cukup baik.
-// Pastikan saja Anda menangani nilai isArchived dan isTrashed dengan benar saat membuat note baru.
-
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 
@@ -60,20 +56,18 @@ class _AddNotePageState extends State<AddNotePage> {
   void _saveNote() {
     if (_formKey.currentState!.validate()) {
       final note = Note(
-        id: widget.note?.id,
+        id: widget.note?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
         content: _contentController.text.trim(),
         tag: _selectedTag,
         createdAt: _createdAt!,
         updatedAt: DateTime.now(),
-        isArchived: _isArchived, // Pertahankan status arsip
-        isTrashed: _isTrashed,   // Pertahankan status sampah
+        isArchived: _isArchived,
+        isTrashed: _isTrashed,
       );
       Navigator.pop(context, note);
     }
   }
-
-  // ... (Sisa kode untuk dialog tag tidak perlu diubah, biarkan seperti aslinya)
 
   void _showEditTagDialog(String oldTag) {
     _tagController.text = oldTag;

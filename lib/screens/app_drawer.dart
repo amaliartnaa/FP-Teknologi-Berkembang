@@ -1,5 +1,5 @@
+// app_drawer.dart (FINAL)
 import 'package:flutter/material.dart';
-import '../models/note.dart';
 import 'home_page.dart';
 import 'archive_page.dart';
 import 'trash_page.dart';
@@ -7,14 +7,10 @@ import 'stats_page.dart';
 import 'settings_page.dart';
 
 class AppDrawer extends StatelessWidget {
-  final List<Note> notes;
-  final Function(Note) onNoteUpdated;
   final ValueNotifier<ThemeMode> themeNotifier;
 
   const AppDrawer({
     super.key,
-    required this.notes,
-    required this.onNoteUpdated,
     required this.themeNotifier,
   });
 
@@ -56,8 +52,6 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => ArchivePage(
-                    notes: notes,
-                    onNoteUpdated: onNoteUpdated,
                     themeNotifier: themeNotifier,
                   ),
                 ),
@@ -72,8 +66,6 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => TrashPage(
-                    notes: notes,
-                    onNoteUpdated: onNoteUpdated,
                     themeNotifier: themeNotifier,
                   ),
                 ),
@@ -88,8 +80,6 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => StatsPage(
-                    notes: notes,
-                    onNoteUpdated: onNoteUpdated,
                     themeNotifier: themeNotifier,
                   ),
                 ),
@@ -106,8 +96,6 @@ class AppDrawer extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => SettingsPage(
                     themeNotifier: themeNotifier,
-                    notes: notes,
-                    onNoteUpdated: onNoteUpdated,
                   ),
                 ),
               );

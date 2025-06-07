@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import 'app_drawer.dart';
+import 'home_page.dart';
 
 class TrashPage extends StatefulWidget {
-  final List<Note> notes;
-  final Function(Note) onNoteUpdated;
   final ValueNotifier<ThemeMode> themeNotifier;
 
   const TrashPage({
     super.key,
-    required this.notes,
-    required this.onNoteUpdated,
     required this.themeNotifier,
   });
 
@@ -20,18 +17,20 @@ class TrashPage extends StatefulWidget {
 
 class _TrashPageState extends State<TrashPage> {
   List<Note> get _trashedNotes =>
-      widget.notes.where((note) => note.isTrashed).toList();
+      HomePage.notes.where((note) => note.isTrashed).toList();
 
   void _restoreNote(Note note) {
     setState(() {
-      note.isTrashed = false;
-      widget.onNoteUpdated(note);
+      final index = HomePage.notes.indexWhere((n) => n.id == note.id);
+      if (index != -1) {
+        HomePage.notes[index].isTrashed = false;
+      }
     });
   }
 
   void _deleteNotePermanently(Note note) {
     setState(() {
-      widget.notes.removeWhere((n) => n.id == note.id);
+      HomePage.notes.removeWhere((n) => n.id == note.id);
     });
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Note deleted permanently')));
@@ -39,7 +38,7 @@ class _TrashPageState extends State<TrashPage> {
 
   void _emptyTrash() {
     setState(() {
-      widget.notes.removeWhere((note) => note.isTrashed);
+      HomePage.notes.removeWhere((note) => note.isTrashed);
     });
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Trash has been emptied')));
@@ -60,8 +59,6 @@ class _TrashPageState extends State<TrashPage> {
         ],
       ),
       drawer: AppDrawer(
-        notes: widget.notes,
-        onNoteUpdated: widget.onNoteUpdated,
         themeNotifier: widget.themeNotifier,
       ),
       body: _trashedNotes.isEmpty

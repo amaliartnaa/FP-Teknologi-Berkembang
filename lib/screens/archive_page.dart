@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
-// import 'add_note_page.dart'; // <-- DIHAPUS: Perbaikan untuk warning
 import 'app_drawer.dart';
+import 'home_page.dart';
 
 class ArchivePage extends StatefulWidget {
-  final List<Note> notes;
-  final Function(Note) onNoteUpdated;
   final ValueNotifier<ThemeMode> themeNotifier;
 
   const ArchivePage({
     super.key,
-    required this.notes,
-    required this.onNoteUpdated,
     required this.themeNotifier,
   });
 
@@ -21,18 +17,20 @@ class ArchivePage extends StatefulWidget {
 
 class _ArchivePageState extends State<ArchivePage> {
   List<Note> get _archivedNotes =>
-      widget.notes.where((note) => note.isArchived && !note.isTrashed).toList();
+      HomePage.notes.where((note) => note.isArchived && !note.isTrashed).toList();
 
   void _unarchiveNote(Note note) {
     setState(() {
-      note.isArchived = false;
-      widget.onNoteUpdated(note);
+      final index = HomePage.notes.indexWhere((n) => n.id == note.id);
+      if (index != -1) {
+        HomePage.notes[index].isArchived = false;
+      }
     });
   }
 
   void _deleteNotePermanently(Note note) {
     setState(() {
-      widget.notes.removeWhere((n) => n.id == note.id);
+      HomePage.notes.removeWhere((n) => n.id == note.id);
     });
   }
 
@@ -43,8 +41,6 @@ class _ArchivePageState extends State<ArchivePage> {
         title: const Text('Archived Notes'),
       ),
       drawer: AppDrawer(
-        notes: widget.notes,
-        onNoteUpdated: widget.onNoteUpdated,
         themeNotifier: widget.themeNotifier,
       ),
       body: _archivedNotes.isEmpty
