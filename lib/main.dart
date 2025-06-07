@@ -1,35 +1,44 @@
-import 'package:flutter/material.dart';
-import 'screens/home_page.dart';
+// main.dart
 
-// Notifier untuk mengelola perubahan tema
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+import 'package:flutter/material.dart';
+import 'screens/login_page.dart';
+
+// DITAMBAHKAN: "Database" sederhana untuk menyimpan pengguna
+class User {
+  final String email;
+  final String password;
+  User({required this.email, required this.password});
+}
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  // DITAMBAHKAN: List statis untuk menyimpan semua pengguna yang terdaftar
+  static List<User> users = [];
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
+    return ValueListenableBuilder(
       valueListenable: themeNotifier,
-      builder: (context, currentMode, child) {
+      builder: (context, ThemeMode currentMode, _) {
         return MaterialApp(
-          title: 'College Notes',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            brightness: Brightness.light,
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            primarySwatch: Colors.blue,
-            useMaterial3: true,
-          ),
+          debugShowCheckedModeBanner: false,
+          title: 'Aplikasi Catatan',
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
           themeMode: currentMode,
-          home: HomePage(themeNotifier: themeNotifier),
+          home: LoginPage(themeNotifier: themeNotifier),
         );
       },
     );
