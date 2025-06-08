@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
 import 'app_drawer.dart';
@@ -9,6 +10,7 @@ class HomePage extends StatefulWidget {
     Note(
       id: '1',
       title: 'Sample Math Note',
+      subtitle: 'Calculus basics and formulas',
       content: 'This is a sample math note about calculus.',
       tag: 'Math',
       createdAt: DateTime.now().subtract(const Duration(days: 2)),
@@ -17,14 +19,17 @@ class HomePage extends StatefulWidget {
     Note(
       id: '2',
       title: 'Sample Physics Note',
+      subtitle: 'Introduction to Thermodynamics',
       content: 'This is a sample physics note about thermodynamics.',
       tag: 'Physics',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      reminder: DateTime.now().add(const Duration(days: 1)),
     ),
-    Note(
+     Note(
       id: '3',
       title: 'Archived Note Example',
+      subtitle: 'This subtitle is for the archived note',
       content: 'This note is archived.',
       tag: 'Chemistry',
       createdAt: DateTime.now(),
@@ -74,7 +79,7 @@ class _HomePageState extends State<HomePage> {
         filteredNotes = tagFiltered
             .where((note) =>
                 note.title.toLowerCase().contains(query) ||
-                note.content.toLowerCase().contains(query))
+                note.subtitle.toLowerCase().contains(query))
             .toList();
       }
       _updateAvailableTags(activeNotes);
@@ -119,7 +124,6 @@ class _HomePageState extends State<HomePage> {
       note.isTrashed = true;
       _updateFilteredNotes();
     });
-    // SnackBar bisa ditambahkan di sini jika perlu
   }
 
   void _archiveNote(Note note) {
@@ -127,7 +131,6 @@ class _HomePageState extends State<HomePage> {
       note.isArchived = true;
       _updateFilteredNotes();
     });
-    // SnackBar bisa ditambahkan di sini jika perlu
   }
 
   @override
@@ -143,12 +146,9 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search notes...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: const OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Theme.of(context).scaffoldBackgroundColor,
+                  decoration: const InputDecoration(
+                    hintText: 'Cari catatan...',
+                    prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (value) => _updateFilteredNotes(),
                 ),
@@ -159,8 +159,8 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     FilterChip(
-                      selected: selectedTag == 'All',
                       label: const Text('All'),
+                      selected: selectedTag == 'All',
                       onSelected: (bool selected) {
                         setState(() {
                           selectedTag = 'All';
@@ -172,8 +172,8 @@ class _HomePageState extends State<HomePage> {
                     ...availableTags.map((tag) => Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: FilterChip(
-                            selected: selectedTag == tag,
                             label: Text(tag),
+                            selected: selectedTag == tag,
                             onSelected: (bool selected) {
                               setState(() {
                                 selectedTag = tag;
@@ -207,43 +207,58 @@ class _HomePageState extends State<HomePage> {
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
       body: filteredNotes.isEmpty
           ? const Center(
-              child: Text("No notes found. Tap '+' to create one!",
+              child: Text("Tidak ada catatan. Tekan '+' untuk membuat.",
                   style: TextStyle(fontSize: 18, color: Colors.grey)))
           : ListView.builder(
+              padding: const EdgeInsets.all(8.0),
               itemCount: filteredNotes.length,
               itemBuilder: (context, index) {
                 final note = filteredNotes[index];
                 return Card(
-                  margin: const EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.symmetric(vertical: 6.0),
                   child: ListTile(
-                    title: Text(note.title),
-                    subtitle: Text(
-                      note.content,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    contentPadding: const EdgeInsets.all(16.0),
+                    title: Text(note.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(note.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          if (note.reminder != null) ...[
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Icon(Icons.notifications, size: 16, color: Theme.of(context).primaryColor),
+                                const SizedBox(width: 6),
+                                Text(
+                                  DateFormat('d MMM, h:mm a').format(note.reminder!),
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                    trailing: Chip(label: Text(note.tag)),
-                    // --- PERBAIKAN LOGIKA ADA DI SINI ---
+                    trailing: Chip(
+                      label: Text(note.tag),
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer.withAlpha(128),
+                      side: BorderSide.none,
+                    ),
                     onTap: () async {
-                      final result = await Navigator.push(
+                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => NoteDetailPage(note: note),
                         ),
                       );
 
-                      // Cek hasil yang dikembalikan dari NoteDetailPage
-                      if (result == 'archive') {
-                        _archiveNote(note);
-                      } else if (result == 'delete') {
-                        _moveToTrash(note);
-                      } else if (result is Note) {
-                        // Ini menangani kasus jika ada perubahan dari halaman edit
-                        final index = HomePage.notes.indexWhere((n) => n.id == result.id);
-                        if (index != -1) {
-                            HomePage.notes[index] = result;
-                            _updateFilteredNotes();
-                        }
+                      if (result == 'archive' || result == 'delete' || result is Note) {
+                         _updateFilteredNotes();
                       }
                     },
                     onLongPress: () => _showNoteOptions(context, note),

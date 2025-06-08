@@ -1,26 +1,26 @@
-// lib/models/note.dart (UPDATED)
-
 class Note {
   String id;
   String title;
+  String subtitle;
   String content;
   String tag;
   DateTime createdAt;
   DateTime updatedAt;
   bool isArchived;
   bool isTrashed;
-  DateTime? reminder; // <-- TAMBAHKAN FIELD INI
+  DateTime? reminder;
 
   Note({
     required this.id,
     required this.title,
+    required this.subtitle,
     required this.content,
     required this.tag,
     required this.createdAt,
     required this.updatedAt,
     this.isArchived = false,
     this.isTrashed = false,
-    this.reminder, // <-- TAMBAHKAN DI CONSTRUCTOR
+    this.reminder,
   });
 
   // Fungsi toMap dan fromMap untuk masa depan jika menggunakan database
@@ -28,13 +28,14 @@ class Note {
     return {
       'id': id,
       'title': title,
+      'subtitle': subtitle,
       'content': content,
       'tag': tag,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'isArchived': isArchived,
       'isTrashed': isTrashed,
-      'reminder': reminder?.toIso8601String(), // <-- TAMBAHKAN
+      'reminder': reminder?.toIso8601String(),
     };
   }
 
@@ -42,14 +43,14 @@ class Note {
     return Note(
       id: map['id'],
       title: map['title'],
+      subtitle: map['subtitle'] ?? '', // Beri nilai default jika null
       content: map['content'],
       tag: map['tag'],
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
       isArchived: map['isArchived'] ?? false,
       isTrashed: map['isTrashed'] ?? false,
-      // Jika reminder tidak null, parse. Jika null, biarkan null.
-      reminder: map['reminder'] != null ? DateTime.parse(map['reminder']) : null, // <-- TAMBAHKAN
+      reminder: map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
     );
   }
 }

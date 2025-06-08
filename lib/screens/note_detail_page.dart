@@ -13,20 +13,19 @@ class NoteDetailPage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Move to Trash?'),
-          content:
-              const Text('Are you sure you want to move this note to trash?'),
+          title: const Text('Pindahkan ke Sampah?'),
+          content: const Text('Anda yakin ingin memindahkan catatan ini ke sampah?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context, 'delete'); // Return 'delete' string
+                Navigator.pop(context);
+                Navigator.pop(context, 'delete');
               },
-              child: const Text('Move to Trash',
+              child: const Text('Pindahkan',
                   style: TextStyle(color: Colors.red)),
             ),
           ],
@@ -42,13 +41,13 @@ class NoteDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Note Details'),
+        title: const Text('Detail Catatan'),
         actions: [
           IconButton(
             icon: const Icon(Icons.archive_outlined),
             tooltip: 'Archive',
             onPressed: () {
-              Navigator.pop(context, 'archive'); // Return 'archive' string
+              Navigator.pop(context, 'archive');
             },
           ),
           IconButton(
@@ -61,9 +60,8 @@ class NoteDetailPage extends StatelessWidget {
                   builder: (context) => AddNotePage(note: note),
                 ),
               );
-              if (result != null) {
-                if (!context.mounted) return; // <-- PERBAIKAN
-                Navigator.pop(context, result); // Return the updated Note object
+              if (result != null && context.mounted) {
+                Navigator.pop(context, result);
               }
             },
           ),
@@ -75,24 +73,47 @@ class NoteDetailPage extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
               note.title,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8.0),
+            SelectableText(
+              note.subtitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16.0),
             Chip(label: Text(note.tag)),
             const SizedBox(height: 16.0),
+
+            if (note.reminder != null) ...[
+              Card(
+                color: Theme.of(context).primaryColor.withAlpha(26),
+                elevation: 0,
+                child: ListTile(
+                  leading: Icon(Icons.notifications_active, color: Theme.of(context).primaryColor),
+                  title: const Text('Pengingat diatur untuk:'),
+                  subtitle: Text(
+                    DateFormat('EEEE, d MMMM y, h:mm a').format(note.reminder!),
+                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+            ],
+
             const Divider(),
             const SizedBox(height: 16.0),
             SelectableText(
               note.content,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
             ),
             const SizedBox(height: 24.0),
+            
             Text(
               'Last updated: $formattedDate at $formattedTime',
               style: Theme.of(context).textTheme.bodySmall,

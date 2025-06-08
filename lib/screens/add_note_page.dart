@@ -14,6 +14,7 @@ class AddNotePage extends StatefulWidget {
 class _AddNotePageState extends State<AddNotePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
+  late TextEditingController _subtitleController;
   late TextEditingController _contentController;
   late TextEditingController _tagController;
   String _selectedTag = '';
@@ -30,8 +31,8 @@ class _AddNotePageState extends State<AddNotePage> {
     super.initState();
     _isEditing = widget.note != null;
     _titleController = TextEditingController(text: widget.note?.title ?? '');
-    _contentController =
-        TextEditingController(text: widget.note?.content ?? '');
+    _subtitleController = TextEditingController(text: widget.note?.subtitle ?? '');
+    _contentController = TextEditingController(text: widget.note?.content ?? '');
     _tagController = TextEditingController();
 
     if (_isEditing) {
@@ -52,6 +53,7 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   void dispose() {
     _titleController.dispose();
+    _subtitleController.dispose();
     _contentController.dispose();
     _tagController.dispose();
     super.dispose();
@@ -62,6 +64,7 @@ class _AddNotePageState extends State<AddNotePage> {
       final note = Note(
         id: widget.note?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
+        subtitle: _subtitleController.text.trim(),
         content: _contentController.text.trim(),
         tag: _selectedTag,
         createdAt: _createdAt!,
@@ -81,8 +84,7 @@ class _AddNotePageState extends State<AddNotePage> {
         builder: (context) => SetReminderPage(initialDate: _reminder),
       ),
     );
-
-    if (result != null) {
+    if (mounted && result != null) {
       setState(() {
         _reminder = result;
       });
@@ -199,26 +201,20 @@ class _AddNotePageState extends State<AddNotePage> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Title',
-                hintText: 'Enter note title',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.title),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () => _titleController.clear(),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: 'Judul'),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a title';
-                }
-                if (value.length > 50) {
-                  return 'Title should be less than 50 characters';
-                }
+                if (value == null || value.trim().isEmpty) return 'Judul tidak boleh kosong';
                 return null;
               },
-              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _subtitleController,
+              decoration: const InputDecoration(labelText: 'Sub Judul'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Sub Judul tidak boleh kosong';
+                return null;
+              },
             ),
             const SizedBox(height: 16.0),
             Row(
@@ -228,7 +224,6 @@ class _AddNotePageState extends State<AddNotePage> {
                     value: _selectedTag,
                     decoration: const InputDecoration(
                       labelText: 'Tag',
-                      border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.local_offer),
                     ),
                     items: _tags.map((String tag) {
@@ -289,7 +284,7 @@ class _AddNotePageState extends State<AddNotePage> {
               subtitle: Text(
                 _reminder == null
                     ? 'Tidak diatur'
-                    : DateFormat('EEE, d MMM yyyy, h:mm a').format(_reminder!),
+                    : DateFormat('EEE, d MMM y, h:mm a').format(_reminder!),
               ),
               trailing: _reminder != null
                   ? IconButton(
@@ -307,26 +302,20 @@ class _AddNotePageState extends State<AddNotePage> {
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: 'Content',
-                hintText: 'Enter note content',
-                border: OutlineInputBorder(),
-                alignLabelWithHint: true,
-              ),
+              decoration: const InputDecoration(labelText: 'Konten'),
               maxLines: 10,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter some content';
-                }
+                if (value == null || value.trim().isEmpty) return 'Konten tidak boleh kosong';
                 return null;
               },
-              textInputAction: TextInputAction.newline,
             ),
-            const SizedBox(height: 16.0),
             if (_isEditing) ...[
-              Text(
-                'Created: ${widget.note!.createdAt.toString().split('.')[0]}',
-                style: Theme.of(context).textTheme.bodySmall,
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  'Created: ${widget.note!.createdAt.toString().split('.')[0]}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ),
               const SizedBox(height: 8.0),
               Text(
