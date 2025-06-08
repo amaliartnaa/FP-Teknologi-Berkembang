@@ -53,8 +53,9 @@ class _SplashScreenState extends State<SplashScreen> {
               'SiCatat',
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
+                fontFamily: 'monospace'
               ),
             ),
           ],

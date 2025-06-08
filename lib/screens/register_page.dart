@@ -79,6 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace'
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -122,34 +123,44 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: ElevatedButton(
                     onPressed: _register,
                     style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.deepPurple.shade300,
+                      backgroundColor: const Color(0xFFD8D3FE),
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                     child: const Text(
                       'Register',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(color: Colors.black, fontSize: 16),
-                    children: <TextSpan>[
-                      const TextSpan(text: 'Already have an account? '),
-                      TextSpan(
-                          text: 'Login here',
-                          style: TextStyle(
-                            color: Colors.deepPurple.shade400,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pop(context);
-                            }),
-                    ],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginPage(themeNotifier: widget.themeNotifier),),
+                        );
+                      },
+                      child: const Text(
+                        'Login here',
+                        style: TextStyle(
+                          color: Colors.purple,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

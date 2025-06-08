@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'register_page.dart';
 import '../screens/home_page.dart';
@@ -68,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace'
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -100,41 +100,44 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.deepPurple.shade300,
+                      backgroundColor: const Color(0xFFD8D3FE),
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                     child: const Text(
                       'Login',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(color: Colors.black, fontSize: 16),
-                    children: <TextSpan>[
-                      const TextSpan(text: "Don't have an account? "),
-                      TextSpan(
-                        text: 'Register here',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => RegisterPage(themeNotifier: widget.themeNotifier),),
+                        );
+                      },
+                      child: const Text(
+                        'Register here',
                         style: TextStyle(
-                          color: Colors.deepPurple.shade400,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                          fontWeight: FontWeight.w500,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RegisterPage(
-                                    themeNotifier: widget.themeNotifier),
-                              ),
-                            );
-                          },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
