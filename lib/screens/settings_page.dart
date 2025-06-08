@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'app_drawer.dart';
-import 'login_page.dart';
+import 'package:notes_crud_app/screens/app_drawer.dart'; // <-- Perbaikan di sini
+import 'package:notes_crud_app/screens/login_page.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -72,7 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
           const Divider(),
           const ListTile(
             title: Text('About'),
-            subtitle: Text('College Notes App v1.0'),
+            subtitle: Text('SiCatat v1.0.0'),
             leading: Icon(Icons.info),
           ),
           const Divider(),

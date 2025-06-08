@@ -1,5 +1,3 @@
-// lib/screens/set_reminder_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -18,7 +16,8 @@ class _SetReminderPageState extends State<SetReminderPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDateTime = widget.initialDate ?? DateTime.now().add(const Duration(hours: 1));
+    _selectedDateTime =
+        widget.initialDate ?? DateTime.now().add(const Duration(hours: 1));
   }
 
   Future<void> _pickDate() async {
@@ -29,7 +28,7 @@ class _SetReminderPageState extends State<SetReminderPage> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
-    if (pickedDate != null) {
+    if (pickedDate != null && mounted) {
       _pickTime(pickedDate);
     }
   }
@@ -75,13 +74,15 @@ class _SetReminderPageState extends State<SetReminderPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: Theme.of(context).splashColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                DateFormat('EEEE, d MMMM yyyy\nh:mm a').format(_selectedDateTime!),
+                DateFormat('EEEE, d MMMM yyyy\nh:mm a')
+                    .format(_selectedDateTime!),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 32),
@@ -103,14 +104,16 @@ class _SetReminderPageState extends State<SetReminderPage> {
                 backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
               child: const Text('Simpan Pengingat'),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                Navigator.pop(context, widget.initialDate);
+                // Saat batal, kembalikan null untuk menandakan tidak ada perubahan
+                Navigator.pop(context, null);
               },
               child: const Text('Batal'),
             ),

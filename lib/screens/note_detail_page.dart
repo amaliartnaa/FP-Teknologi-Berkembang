@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/note.dart';
-import 'add_note_page.dart';
+import 'package:notes_crud_app/models/note.dart';
+import 'package:notes_crud_app/screens/add_note_page.dart';
 
 class NoteDetailPage extends StatelessWidget {
   final Note note;
@@ -14,7 +14,8 @@ class NoteDetailPage extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Pindahkan ke Sampah?'),
-          content: const Text('Anda yakin ingin memindahkan catatan ini ke sampah?'),
+          content:
+              const Text('Anda yakin ingin memindahkan catatan ini ke sampah?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -25,8 +26,8 @@ class NoteDetailPage extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.pop(context, 'delete');
               },
-              child: const Text('Pindahkan',
-                  style: TextStyle(color: Colors.red)),
+              child:
+                  const Text('Pindahkan', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -79,41 +80,51 @@ class NoteDetailPage extends StatelessWidget {
           children: [
             SelectableText(
               note.title,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8.0),
             SelectableText(
               note.subtitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16.0),
             Chip(label: Text(note.tag)),
             const SizedBox(height: 16.0),
-
             if (note.reminder != null) ...[
               Card(
                 color: Theme.of(context).primaryColor.withAlpha(26),
                 elevation: 0,
                 child: ListTile(
-                  leading: Icon(Icons.notifications_active, color: Theme.of(context).primaryColor),
+                  leading: Icon(Icons.notifications_active,
+                      color: Theme.of(context).primaryColor),
                   title: const Text('Pengingat diatur untuk:'),
                   subtitle: Text(
-                    DateFormat('EEEE, d MMMM y, h:mm a').format(note.reminder!),
-                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
+                    DateFormat('EEEE, d MMMM y, h:mm a')
+                        .format(note.reminder!),
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               const SizedBox(height: 16.0),
             ],
-
             const Divider(),
             const SizedBox(height: 16.0),
             SelectableText(
               note.content,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(fontSize: 16, height: 1.5),
             ),
             const SizedBox(height: 24.0),
-            
             Text(
               'Last updated: $formattedDate at $formattedTime',
               style: Theme.of(context).textTheme.bodySmall,

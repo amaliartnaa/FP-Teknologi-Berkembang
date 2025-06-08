@@ -1,12 +1,9 @@
-// lib/screens/reminder_center_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/note.dart';
-import 'note_detail_page.dart';
+import 'package:notes_crud_app/models/note.dart';
+import 'package:notes_crud_app/screens/note_detail_page.dart';
 
 class ReminderCenterPage extends StatefulWidget {
-  // Terima daftar semua catatan dari HomePage
   final List<Note> allNotes;
 
   const ReminderCenterPage({super.key, required this.allNotes});
@@ -16,24 +13,21 @@ class ReminderCenterPage extends StatefulWidget {
 }
 
 class _ReminderCenterPageState extends State<ReminderCenterPage> {
-  // Buat list baru untuk menampung hasil saringan
   List<Note> _notesWithReminders = [];
 
   @override
   void initState() {
     super.initState();
-    // Saring dan urutkan catatan saat halaman pertama kali dibuka
     _filterAndSortReminders();
   }
 
   void _filterAndSortReminders() {
     setState(() {
-      // Ambil hanya catatan yang punya reminder dan waktunya masih di masa depan
       _notesWithReminders = widget.allNotes
-          .where((note) => note.reminder != null && note.reminder!.isAfter(DateTime.now()))
+          .where((note) =>
+              note.reminder != null && note.reminder!.isAfter(DateTime.now()))
           .toList();
 
-      // Urutkan berdasarkan tanggal reminder terdekat
       _notesWithReminders.sort((a, b) => a.reminder!.compareTo(b.reminder!));
     });
   }
@@ -45,14 +39,12 @@ class _ReminderCenterPageState extends State<ReminderCenterPage> {
         title: const Text('Pusat Pengingat'),
         centerTitle: true,
       ),
-      // Tampilkan UI berbeda tergantung apakah ada pengingat atau tidak
       body: _notesWithReminders.isEmpty
-          ? _buildEmptyState() // Tampilkan pesan kosong jika tidak ada reminder
-          : _buildRemindersList(), // Tampilkan daftar jika ada reminder
+          ? _buildEmptyState()
+          : _buildRemindersList(),
     );
   }
 
-  // Widget untuk tampilan kosong
   Widget _buildEmptyState() {
     return const Center(
       child: Column(
@@ -74,7 +66,6 @@ class _ReminderCenterPageState extends State<ReminderCenterPage> {
     );
   }
 
-  // Widget untuk menampilkan daftar pengingat
   Widget _buildRemindersList() {
     return ListView.builder(
       padding: const EdgeInsets.all(8.0),
@@ -88,14 +79,13 @@ class _ReminderCenterPageState extends State<ReminderCenterPage> {
               Icons.notifications_active,
               color: Theme.of(context).primaryColor,
             ),
-            title: Text(note.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(note.title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(
-              // Format tanggal agar mudah dibaca
               'Due: ${DateFormat('EEE, d MMM yyyy - h:mm a').format(note.reminder!)}',
             ),
             trailing: Chip(label: Text(note.tag)),
             onTap: () {
-              // Saat diklik, pergi ke halaman detail catatan tersebut
               Navigator.push(
                 context,
                 MaterialPageRoute(

@@ -23,7 +23,6 @@ class Note {
     this.reminder,
   });
 
-  // Fungsi toMap dan fromMap untuk masa depan jika menggunakan database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -43,14 +42,15 @@ class Note {
     return Note(
       id: map['id'],
       title: map['title'],
-      subtitle: map['subtitle'] ?? '', // Beri nilai default jika null
+      subtitle: map['subtitle'] ?? '',
       content: map['content'],
       tag: map['tag'],
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
       isArchived: map['isArchived'] ?? false,
       isTrashed: map['isTrashed'] ?? false,
-      reminder: map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
+      reminder:
+          map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
     );
   }
 }

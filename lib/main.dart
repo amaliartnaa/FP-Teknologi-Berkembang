@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 
+// Definisi class User
 class User {
   final String name;
   final String email;
@@ -15,6 +16,7 @@ void main() {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  // List statis users
   static List<User> users = [];
 
   @override
@@ -64,7 +66,6 @@ class _MyAppState extends State<MyApp> {
                 borderSide: const BorderSide(color: Colors.deepPurple),
               ),
             ),
-            // --- PERBAIKAN ADA DI SINI ---
             cardTheme: CardThemeData(
               elevation: 2,
               color: Colors.white,
@@ -72,7 +73,6 @@ class _MyAppState extends State<MyApp> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            // --- BATAS PERBAIKAN ---
             floatingActionButtonTheme: FloatingActionButtonThemeData(
               backgroundColor: Colors.deepPurple.shade400,
               foregroundColor: Colors.white,

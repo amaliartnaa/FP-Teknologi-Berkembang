@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/note.dart';
-import 'app_drawer.dart';
-import 'home_page.dart';
+import 'package:notes_crud_app/models/note.dart';
+import 'package:notes_crud_app/screens/app_drawer.dart'; // <-- Perbaikan di sini
+import 'package:notes_crud_app/screens/home_page.dart';
 
 class TrashPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -77,7 +77,7 @@ class _TrashPageState extends State<TrashPage> {
                   child: ListTile(
                     title: Text(note.title),
                     subtitle: Text(
-                      note.content,
+                      note.subtitle, // Menampilkan subtitle
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -122,8 +122,8 @@ class _TrashPageState extends State<TrashPage> {
               onPressed: () => Navigator.pop(context),
             ),
             TextButton(
-              child:
-                  const Text('Empty Trash', style: TextStyle(color: Colors.red)),
+              child: const Text('Empty Trash',
+                  style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.pop(context);
                 _emptyTrash();

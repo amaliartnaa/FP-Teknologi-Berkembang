@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/note.dart';
-import 'set_reminder_page.dart';
+import 'package:notes_crud_app/models/note.dart';
+import 'package:notes_crud_app/screens/set_reminder_page.dart';
 
 class AddNotePage extends StatefulWidget {
   final Note? note;
@@ -31,8 +31,10 @@ class _AddNotePageState extends State<AddNotePage> {
     super.initState();
     _isEditing = widget.note != null;
     _titleController = TextEditingController(text: widget.note?.title ?? '');
-    _subtitleController = TextEditingController(text: widget.note?.subtitle ?? '');
-    _contentController = TextEditingController(text: widget.note?.content ?? '');
+    _subtitleController =
+        TextEditingController(text: widget.note?.subtitle ?? '');
+    _contentController =
+        TextEditingController(text: widget.note?.content ?? '');
     _tagController = TextEditingController();
 
     if (_isEditing) {
@@ -203,7 +205,9 @@ class _AddNotePageState extends State<AddNotePage> {
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Judul'),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Judul tidak boleh kosong';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Judul tidak boleh kosong';
+                }
                 return null;
               },
             ),
@@ -212,7 +216,9 @@ class _AddNotePageState extends State<AddNotePage> {
               controller: _subtitleController,
               decoration: const InputDecoration(labelText: 'Sub Judul'),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Sub Judul tidak boleh kosong';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Sub Judul tidak boleh kosong';
+                }
                 return null;
               },
             ),
@@ -305,7 +311,9 @@ class _AddNotePageState extends State<AddNotePage> {
               decoration: const InputDecoration(labelText: 'Konten'),
               maxLines: 10,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Konten tidak boleh kosong';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Konten tidak boleh kosong';
+                }
                 return null;
               },
             ),

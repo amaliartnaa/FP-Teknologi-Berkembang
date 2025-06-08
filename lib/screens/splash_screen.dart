@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login_page.dart';
+import 'package:notes_crud_app/screens/login_page.dart';
 
 class SplashScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -37,7 +37,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 'const' dihapus dari baris di bawah ini
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

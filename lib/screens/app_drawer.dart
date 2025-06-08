@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'archive_page.dart';
-import 'trash_page.dart';
-import 'stats_page.dart';
-import 'settings_page.dart';
-import 'reminder_center_page.dart';
+import 'package:notes_crud_app/screens/archive_page.dart';
+import 'package:notes_crud_app/screens/home_page.dart';
+import 'package:notes_crud_app/screens/reminder_center_page.dart';
+import 'package:notes_crud_app/screens/settings_page.dart';
+import 'package:notes_crud_app/screens/stats_page.dart';
+import 'package:notes_crud_app/screens/trash_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -16,52 +16,63 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mendeteksi apakah kita sedang di HomePage atau tidak
     final bool isHomePage = ModalRoute.of(context)?.settings.name == '/';
 
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.deepPurple.shade300,
             ),
-            child: Text(
-              'College Notes',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icon_sicatat.png',
+                  height: 60,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'SiCatat',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),
             onTap: () {
-              // Jika sudah di HomePage, cukup tutup drawer
               if (isHomePage) {
                 Navigator.pop(context);
               } else {
-                // Jika dari halaman lain, kembali ke Home dan hapus tumpukan
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                     builder: (context) => HomePage(themeNotifier: themeNotifier),
-                    // Beri nama rute agar bisa dideteksi
                     settings: const RouteSettings(name: '/'),
                   ),
-                  (route) => false, // Hapus semua rute sebelumnya
+                  (route) => false,
                 );
               }
             },
           ),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined),
             title: const Text('Pusat Pengingat'),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push, bukan pushReplacement
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ReminderCenterPage(
@@ -71,12 +82,14 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.archive),
             title: const Text('Archive'),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ArchivePage(
@@ -86,12 +99,14 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.delete),
             title: const Text('Trash'),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => TrashPage(
@@ -101,12 +116,14 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.pie_chart),
             title: const Text('Statistics'),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => StatsPage(
@@ -116,13 +133,16 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
+          
           const Divider(),
+          
+          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => SettingsPage(

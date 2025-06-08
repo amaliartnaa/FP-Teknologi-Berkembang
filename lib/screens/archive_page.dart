@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/note.dart';
-import 'app_drawer.dart';
-import 'home_page.dart';
+import 'package:notes_crud_app/models/note.dart';
+import 'package:notes_crud_app/screens/app_drawer.dart';
+import 'package:notes_crud_app/screens/home_page.dart';
 
 class ArchivePage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;

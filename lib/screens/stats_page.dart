@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'app_drawer.dart';
-import 'home_page.dart';
+import 'package:notes_crud_app/screens/app_drawer.dart';
+import 'package:notes_crud_app/screens/home_page.dart';
 
 class StatsPage extends StatelessWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -20,8 +20,10 @@ class StatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int totalNotes = HomePage.notes.where((n) => !n.isTrashed && !n.isArchived).length;
-    final int archivedNotes = HomePage.notes.where((n) => n.isArchived).length;
+    final int totalNotes =
+        HomePage.notes.where((n) => !n.isTrashed && !n.isArchived).length;
+    final int archivedNotes =
+        HomePage.notes.where((n) => n.isArchived).length;
     final int trashedNotes = HomePage.notes.where((n) => n.isTrashed).length;
     final Map<String, int> tagCounts = _getNoteCountByTag();
 

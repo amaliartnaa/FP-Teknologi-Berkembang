@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'login_page.dart';
-import '../main.dart';
+import 'package:notes_crud_app/main.dart';
+import 'package:notes_crud_app/screens/login_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -84,36 +84,27 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 48),
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Full Name',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                    prefixIcon: Icon(Icons.lock_outline),
                   ),
                 ),
                 const SizedBox(height: 32),

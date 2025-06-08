@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> {
 
   Color _getColorForTag(String tag) {
     final hash = tag.hashCode;
-    return Colors.primaries[hash % Colors.primaries.length].withAlpha(80);
+    return Colors.primaries[hash % Colors.primaries.length];
   }
 
   @override
@@ -303,70 +303,91 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                   child: Card(
+                    clipBehavior: Clip.antiAlias,
                     margin: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16.0),
-                      title: Text(note.title,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(note.subtitle,
-                                maxLines: 2, overflow: TextOverflow.ellipsis),
-                            if (note.reminder != null) ...[
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Icon(Icons.notifications,
-                                      size: 16,
-                                      color: Theme.of(context).primaryColor),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    DateFormat('d MMM, h:mm a')
-                                        .format(note.reminder!),
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            _getColorForTag(note.tag).withAlpha(77),
+                            _getColorForTag(note.tag).withAlpha(26),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                       ),
-                      trailing: Chip(
-                        label: Text(note.tag),
-                        backgroundColor: _getColorForTag(note.tag),
-                        side: BorderSide.none,
-                      ),
-                      // --- PERBAIKAN LOGIKA ADA DI SINI ---
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => NoteDetailPage(note: note),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16.0),
+                        title: Text(note.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18)),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(note.subtitle,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis),
+                              if (note.reminder != null) ...[
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Icon(Icons.notifications,
+                                        size: 16,
+                                        color:
+                                            Theme.of(context).primaryColor),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      DateFormat('d MMM, h:mm a')
+                                          .format(note.reminder!),
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
                           ),
-                        );
+                        ),
+                        trailing: Chip(
+                          label: Text(
+                            note.tag,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          backgroundColor:
+                              _getColorForTag(note.tag).withAlpha(179),
+                          side: BorderSide.none,
+                        ),
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => NoteDetailPage(note: note),
+                            ),
+                          );
 
-                        if (result == 'archive') {
-                          _archiveNote(note);
-                        } else if (result == 'delete') {
-                          _moveToTrash(note);
-                        } else if (result is Note) {
-                          // Jika catatan diedit, update data di list utama
-                          final index = HomePage.notes.indexWhere((n) => n.id == result.id);
-                          if (index != -1) {
-                            HomePage.notes[index] = result;
+                          if (result == 'archive') {
+                            _archiveNote(note);
+                          } else if (result == 'delete') {
+                            _moveToTrash(note);
+                          } else if (result is Note) {
+                            final index = HomePage.notes.indexWhere((n) => n.id == result.id);
+                            if (index != -1) {
+                              HomePage.notes[index] = result;
+                            }
+                            _updateFilteredNotes();
                           }
-                          // Lalu refresh tampilan
-                          _updateFilteredNotes();
-                        }
-                      },
-                      onLongPress: () => _showNoteOptions(context, note),
+                        },
+                      ),
                     ),
                   ),
                 );
@@ -376,46 +397,6 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => _addOrEditNote(null),
         child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showNoteOptions(BuildContext context, Note note) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addOrEditNote(note);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.archive),
-                title: const Text('Archive'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _archiveNote(note);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Move to Trash',
-                    style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _moveToTrash(note);
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
