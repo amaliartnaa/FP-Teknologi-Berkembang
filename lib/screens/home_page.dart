@@ -9,18 +9,18 @@ class HomePage extends StatefulWidget {
   static List<Note> notes = [
     Note(
       id: '1',
-      title: 'Sample Math Note',
-      subtitle: 'Calculus basics and formulas',
-      content: 'This is a sample math note about calculus.',
+      title: 'Rangkuman Kalkulus',
+      subtitle: 'Turunan, Integral, dan Limit',
+      content: 'Ini adalah konten lengkap dari catatan kalkulus...',
       tag: 'Math',
       createdAt: DateTime.now().subtract(const Duration(days: 2)),
       updatedAt: DateTime.now().subtract(const Duration(days: 2)),
     ),
     Note(
       id: '2',
-      title: 'Sample Physics Note',
-      subtitle: 'Introduction to Thermodynamics',
-      content: 'This is a sample physics note about thermodynamics.',
+      title: 'Praktikum Fisika Dasar',
+      subtitle: 'Membahas tentang Termodinamika',
+      content: 'Ini adalah konten lengkap dari catatan fisika...',
       tag: 'Physics',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -28,9 +28,9 @@ class HomePage extends StatefulWidget {
     ),
      Note(
       id: '3',
-      title: 'Archived Note Example',
-      subtitle: 'This subtitle is for the archived note',
-      content: 'This note is archived.',
+      title: 'Catatan Arsip Kimia',
+      subtitle: 'Tentang senyawa organik',
+      content: 'Catatan ini diarsipkan.',
       tag: 'Chemistry',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController searchController = TextEditingController();
   Set<String> availableTags = {};
   String sortOrder = 'desc';
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -120,148 +121,253 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _moveToTrash(Note note) {
-    setState(() {
-      note.isTrashed = true;
-      _updateFilteredNotes();
-    });
+    note.isTrashed = true;
+    _updateFilteredNotes();
   }
 
   void _archiveNote(Note note) {
-    setState(() {
-      note.isArchived = true;
-      _updateFilteredNotes();
-    });
+    note.isArchived = true;
+    _updateFilteredNotes();
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter Berdasarkan Tag',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  FilterChip(
+                    label: const Text('All'),
+                    selected: selectedTag == 'All',
+                    onSelected: (bool selected) {
+                      setState(() {
+                        selectedTag = 'All';
+                        _updateFilteredNotes();
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ...availableTags.map((tag) => FilterChip(
+                        label: Text(tag),
+                        selected: selectedTag == tag,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            selectedTag = tag;
+                            _updateFilteredNotes();
+                          });
+                          Navigator.pop(context);
+                        },
+                      )),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getColorForTag(String tag) {
+    final hash = tag.hashCode;
+    return Colors.primaries[hash % Colors.primaries.length].withAlpha(80);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('College Notes'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(110),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: searchController,
-                  decoration: const InputDecoration(
-                    hintText: 'Cari catatan...',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  onChanged: (value) => _updateFilteredNotes(),
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    FilterChip(
-                      label: const Text('All'),
-                      selected: selectedTag == 'All',
-                      onSelected: (bool selected) {
-                        setState(() {
-                          selectedTag = 'All';
-                          _updateFilteredNotes();
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    ...availableTags.map((tag) => Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: FilterChip(
-                            label: Text(tag),
-                            selected: selectedTag == tag,
-                            onSelected: (bool selected) {
-                              setState(() {
-                                selectedTag = tag;
-                                _updateFilteredNotes();
-                              });
-                            },
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-            ],
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (String value) {
-              setState(() {
-                sortOrder = value;
-                _sortNotes();
-              });
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(value: 'desc', child: Text('Sort by Newest')),
-              const PopupMenuItem(value: 'asc', child: Text('Sort by Oldest')),
-            ],
-            icon: const Icon(Icons.sort),
-          ),
-        ],
+        title: _isSearching
+            ? TextField(
+                controller: searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Cari catatan...',
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) => _updateFilteredNotes(),
+              )
+            : const Text('SiCatat'),
+        centerTitle: true,
+        actions: _isSearching
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = false;
+                      searchController.clear();
+                      _updateFilteredNotes();
+                    });
+                  },
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: _showFilterSheet,
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (String value) {
+                    setState(() {
+                      sortOrder = value;
+                      _sortNotes();
+                    });
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(
+                        value: 'desc', child: Text('Sort by Newest')),
+                    const PopupMenuItem(
+                        value: 'asc', child: Text('Sort by Oldest')),
+                  ],
+                ),
+              ],
       ),
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
       body: filteredNotes.isEmpty
-          ? const Center(
-              child: Text("Tidak ada catatan. Tekan '+' untuk membuat.",
-                  style: TextStyle(fontSize: 18, color: Colors.grey)))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icon_sicatat.png',
+                    height: 100,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Catatan masih kosong",
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Tekan tombol '+' untuk membuat catatan pertamamu.",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            )
           : ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: filteredNotes.length,
               itemBuilder: (context, index) {
                 final note = filteredNotes[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16.0),
-                    title: Text(note.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(note.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
-                          if (note.reminder != null) ...[
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Icon(Icons.notifications, size: 16, color: Theme.of(context).primaryColor),
-                                const SizedBox(width: 6),
-                                Text(
-                                  DateFormat('d MMM, h:mm a').format(note.reminder!),
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
-                                    fontWeight: FontWeight.w600,
+                return Dismissible(
+                  key: Key(note.id),
+                  background: Container(
+                    color: Colors.red.shade400,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerLeft,
+                    child: const Icon(Icons.delete_sweep, color: Colors.white),
+                  ),
+                  secondaryBackground: Container(
+                    color: Colors.orange.shade400,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: const Icon(Icons.archive, color: Colors.white),
+                  ),
+                  onDismissed: (direction) {
+                    if (direction == DismissDirection.endToStart) {
+                      _archiveNote(note);
+                    } else {
+                      _moveToTrash(note);
+                    }
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16.0),
+                      title: Text(note.title,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(note.subtitle,
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
+                            if (note.reminder != null) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Icon(Icons.notifications,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    DateFormat('d MMM, h:mm a')
+                                        .format(note.reminder!),
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ),
-                    trailing: Chip(
-                      label: Text(note.tag),
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer.withAlpha(128),
-                      side: BorderSide.none,
-                    ),
-                    onTap: () async {
-                       final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NoteDetailPage(note: note),
                         ),
-                      );
+                      ),
+                      trailing: Chip(
+                        label: Text(note.tag),
+                        backgroundColor: _getColorForTag(note.tag),
+                        side: BorderSide.none,
+                      ),
+                      // --- PERBAIKAN LOGIKA ADA DI SINI ---
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NoteDetailPage(note: note),
+                          ),
+                        );
 
-                      if (result == 'archive' || result == 'delete' || result is Note) {
-                         _updateFilteredNotes();
-                      }
-                    },
-                    onLongPress: () => _showNoteOptions(context, note),
+                        if (result == 'archive') {
+                          _archiveNote(note);
+                        } else if (result == 'delete') {
+                          _moveToTrash(note);
+                        } else if (result is Note) {
+                          // Jika catatan diedit, update data di list utama
+                          final index = HomePage.notes.indexWhere((n) => n.id == result.id);
+                          if (index != -1) {
+                            HomePage.notes[index] = result;
+                          }
+                          // Lalu refresh tampilan
+                          _updateFilteredNotes();
+                        }
+                      },
+                      onLongPress: () => _showNoteOptions(context, note),
+                    ),
                   ),
                 );
               },
