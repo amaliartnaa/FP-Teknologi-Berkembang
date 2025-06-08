@@ -137,7 +137,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('College Notes'),
+        title: const Text(
+            'College Notes',
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(110),
           child: Column(
@@ -197,8 +199,20 @@ class _HomePageState extends State<HomePage> {
               });
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(value: 'desc', child: Text('Sort by Newest')),
-              const PopupMenuItem(value: 'asc', child: Text('Sort by Oldest')),
+              const PopupMenuItem(
+                value: 'desc',
+                child: Text(
+                  'Sort by Newest',
+                  style: TextStyle(fontFamily: 'monospace'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'asc',
+                child: Text(
+                  'Sort by Oldest',
+                  style: TextStyle(fontFamily: 'monospace'),
+                ),
+              ),
             ],
             icon: const Icon(Icons.sort),
           ),

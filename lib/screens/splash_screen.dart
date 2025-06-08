@@ -55,7 +55,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
-                fontFamily: 'monospace'
               ),
             ),
           ],

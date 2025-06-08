@@ -36,6 +36,7 @@ class _MyAppState extends State<MyApp> {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
             scaffoldBackgroundColor: Colors.white,
+
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
               elevation: 0,
@@ -44,13 +45,15 @@ class _MyAppState extends State<MyApp> {
                 color: Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
               ),
             ),
+
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
               fillColor: Colors.grey.shade100,
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
                 borderSide: BorderSide.none,
@@ -64,7 +67,7 @@ class _MyAppState extends State<MyApp> {
                 borderSide: const BorderSide(color: Colors.deepPurple),
               ),
             ),
-            // --- PERBAIKAN ADA DI SINI ---
+
             cardTheme: CardThemeData(
               elevation: 2,
               color: Colors.white,
@@ -72,13 +75,68 @@ class _MyAppState extends State<MyApp> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            // --- BATAS PERBAIKAN ---
+
             floatingActionButtonTheme: FloatingActionButtonThemeData(
               backgroundColor: Colors.deepPurple.shade400,
               foregroundColor: Colors.white,
             ),
+
+            textTheme: Typography.blackMountainView.copyWith(
+              bodyLarge: const TextStyle(fontFamily: 'monospace'),
+              bodyMedium: const TextStyle(fontFamily: 'monospace'),
+              bodySmall: const TextStyle(fontFamily: 'monospace'),
+              titleLarge: const TextStyle(fontFamily: 'monospace'),
+              titleMedium: const TextStyle(fontFamily: 'monospace'),
+              titleSmall: const TextStyle(fontFamily: 'monospace'),
+            ),
+
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                textStyle: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ),
+
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                textStyle: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ),
+            chipTheme: ChipThemeData(
+              labelStyle: const TextStyle(fontFamily: 'monospace', color: Colors.black,),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           ),
-          darkTheme: ThemeData.dark(),
+          darkTheme: ThemeData.dark().copyWith(
+            textTheme: Typography.blackMountainView.copyWith(
+              bodyLarge: const TextStyle(fontFamily: 'monospace'),
+              bodyMedium: const TextStyle(fontFamily: 'monospace'),
+              bodySmall: const TextStyle(fontFamily: 'monospace'),
+              titleLarge: const TextStyle(fontFamily: 'monospace'),
+              titleMedium: const TextStyle(fontFamily: 'monospace'),
+              titleSmall: const TextStyle(fontFamily: 'monospace'),
+            ),
+
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                textStyle: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ),
+
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                textStyle: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ),
+            chipTheme: ChipThemeData(
+              labelStyle: const TextStyle(fontFamily: 'monospace'),
+              // backgroundColor: Colors.grey.shade200,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
           themeMode: currentMode,
           home: SplashScreen(themeNotifier: themeNotifier),
         );

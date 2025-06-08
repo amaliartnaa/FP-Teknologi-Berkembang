@@ -79,7 +79,7 @@ class NoteDetailPage extends StatelessWidget {
           children: [
             SelectableText(
               note.title,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontFamily: 'monospace'),
             ),
             const SizedBox(height: 8.0),
             SelectableText(
