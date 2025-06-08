@@ -1,9 +1,8 @@
-// login_page.dart
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'register_page.dart';
 import '../screens/home_page.dart';
-import '../main.dart'; 
+import '../main.dart';
 
 class LoginPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -21,14 +20,12 @@ class _LoginPageState extends State<LoginPage> {
   void _login() {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    
+
     try {
-      // PERBAIKAN: Langsung panggil method tanpa menyimpan ke variabel
       MyApp.users.firstWhere(
         (user) => user.email == email && user.password == password,
       );
 
-      // Jika pengguna ditemukan, lanjutkan ke HomePage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -37,7 +34,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } catch (e) {
-      // Jika tidak ditemukan (firstWhere akan error), tampilkan pesan gagal
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login gagal. Periksa email/password.')),
       );
@@ -45,35 +41,104 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email')),
-            TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password')),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _login, child: const Text('Login')),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => RegisterPage(
-                        themeNotifier: widget.themeNotifier),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icon_sicatat.png',
+                  height: 100,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Welcome to SiCatat',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-              child: const Text('Belum punya akun? Daftar di sini'),
-            )
-          ],
+                ),
+                const SizedBox(height: 48),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.deepPurple.shade300,
+                    ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
+                    children: <TextSpan>[
+                      const TextSpan(text: "Don't have an account? "),
+                      TextSpan(
+                        text: 'Register here',
+                        style: TextStyle(
+                          color: Colors.deepPurple.shade400,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RegisterPage(
+                                    themeNotifier: widget.themeNotifier),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

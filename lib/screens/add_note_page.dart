@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/note.dart';
+import 'set_reminder_page.dart';
 
 class AddNotePage extends StatefulWidget {
   final Note? note;
@@ -19,6 +21,7 @@ class _AddNotePageState extends State<AddNotePage> {
   DateTime? _createdAt;
   bool _isArchived = false;
   bool _isTrashed = false;
+  DateTime? _reminder;
 
   final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
 
@@ -36,6 +39,7 @@ class _AddNotePageState extends State<AddNotePage> {
       _createdAt = widget.note!.createdAt;
       _isArchived = widget.note!.isArchived;
       _isTrashed = widget.note!.isTrashed;
+      _reminder = widget.note!.reminder;
       _tags.add(_selectedTag);
     } else {
       _createdAt = DateTime.now();
@@ -64,8 +68,24 @@ class _AddNotePageState extends State<AddNotePage> {
         updatedAt: DateTime.now(),
         isArchived: _isArchived,
         isTrashed: _isTrashed,
+        reminder: _reminder,
       );
       Navigator.pop(context, note);
+    }
+  }
+
+  Future<void> _navigateToSetReminderPage() async {
+    final result = await Navigator.push<DateTime>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SetReminderPage(initialDate: _reminder),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _reminder = result;
+      });
     }
   }
 
@@ -261,6 +281,29 @@ class _AddNotePageState extends State<AddNotePage> {
                 ),
               ],
             ),
+            const SizedBox(height: 16.0),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.notifications_active_outlined),
+              title: const Text('Atur Pengingat'),
+              subtitle: Text(
+                _reminder == null
+                    ? 'Tidak diatur'
+                    : DateFormat('EEE, d MMM yyyy, h:mm a').format(_reminder!),
+              ),
+              trailing: _reminder != null
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          _reminder = null;
+                        });
+                      },
+                    )
+                  : null,
+              onTap: _navigateToSetReminderPage,
+            ),
+            const Divider(),
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _contentController,

@@ -1,10 +1,10 @@
-// app_drawer.dart (FINAL)
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'archive_page.dart';
 import 'trash_page.dart';
 import 'stats_page.dart';
 import 'settings_page.dart';
+import 'reminder_center_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -16,6 +16,9 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mendeteksi apakah kita sedang di HomePage atau tidak
+    final bool isHomePage = ModalRoute.of(context)?.settings.name == '/';
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -36,11 +39,35 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.home),
             title: const Text('Home'),
             onTap: () {
-              Navigator.pushReplacement(
+              // Jika sudah di HomePage, cukup tutup drawer
+              if (isHomePage) {
+                Navigator.pop(context);
+              } else {
+                // Jika dari halaman lain, kembali ke Home dan hapus tumpukan
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(themeNotifier: themeNotifier),
+                    // Beri nama rute agar bisa dideteksi
+                    settings: const RouteSettings(name: '/'),
+                  ),
+                  (route) => false, // Hapus semua rute sebelumnya
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_active_outlined),
+            title: const Text('Pusat Pengingat'),
+            onTap: () {
+              Navigator.pop(context); // Tutup drawer
+              Navigator.push( // Gunakan push, bukan pushReplacement
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        HomePage(themeNotifier: themeNotifier)),
+                  builder: (context) => ReminderCenterPage(
+                    allNotes: HomePage.notes,
+                  ),
+                ),
               );
             },
           ),
@@ -48,7 +75,8 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.archive),
             title: const Text('Archive'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.pop(context); // Tutup drawer
+              Navigator.push( // Gunakan push
                 context,
                 MaterialPageRoute(
                   builder: (context) => ArchivePage(
@@ -62,7 +90,8 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.delete),
             title: const Text('Trash'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.pop(context); // Tutup drawer
+              Navigator.push( // Gunakan push
                 context,
                 MaterialPageRoute(
                   builder: (context) => TrashPage(
@@ -76,7 +105,8 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.pie_chart),
             title: const Text('Statistics'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.pop(context); // Tutup drawer
+              Navigator.push( // Gunakan push
                 context,
                 MaterialPageRoute(
                   builder: (context) => StatsPage(
@@ -91,7 +121,8 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.pop(context); // Tutup drawer
+              Navigator.push( // Gunakan push
                 context,
                 MaterialPageRoute(
                   builder: (context) => SettingsPage(

@@ -1,8 +1,7 @@
-// register_page.dart
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-import '../main.dart'; // <-- DITAMBAHKAN: Untuk mengakses list users
+import '../main.dart';
 
 class RegisterPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -14,62 +13,147 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // DIMODIFIKASI: Fungsi register kini menyimpan data
   void _register() {
+    final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email dan password tidak boleh kosong.')),
-      );
-      return;
-    }
-    
-    // Cek apakah email sudah terdaftar
-    final userExists = MyApp.users.any((user) => user.email == email);
-    if (userExists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email sudah terdaftar. Silakan gunakan email lain.')),
+        const SnackBar(content: Text('Semua field harus diisi.')),
       );
       return;
     }
 
-    // Jika belum, tambahkan pengguna baru ke list
-    MyApp.users.add(User(email: email, password: password));
+    final userExists = MyApp.users.any((user) => user.email == email);
+    if (userExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email sudah terdaftar.')),
+      );
+      return;
+    }
+
+    MyApp.users.add(User(name: name, email: email, password: password));
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Registrasi berhasil. Silakan login.')),
     );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LoginPage(themeNotifier: widget.themeNotifier),
-      ),
-    );
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginPage(themeNotifier: widget.themeNotifier),
+        ),
+        (route) => false);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrasi')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email')),
-            TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password')),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _register, child: const Text('Daftar')),
-          ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icon_sicatat.png',
+                  height: 100,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Join to SiCatat',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _register,
+                    style: ElevatedButton.styleFrom(
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.deepPurple.shade300,
+                    ),
+                    child: const Text(
+                      'Register',
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
+                    children: <TextSpan>[
+                      const TextSpan(text: 'Already have an account? '),
+                      TextSpan(
+                          text: 'Login here',
+                          style: TextStyle(
+                            color: Colors.deepPurple.shade400,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.pop(context);
+                            }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
