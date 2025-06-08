@@ -16,118 +16,143 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mendeteksi apakah kita sedang di HomePage atau tidak
-    final bool isHomePage = ModalRoute.of(context)?.settings.name == '/';
+    final currentRoute = ModalRoute.of(context)?.settings.name ?? '/';
+
+    Widget buildTile({
+      required IconData icon,
+      required String title,
+      required String routeName,
+      required VoidCallback onTap,
+    }) {
+      final isSelected = currentRoute == routeName;
+
+      return ListTile(
+        leading: Icon(icon, color: Colors.black),
+        title: Text(
+          title,
+          style: const TextStyle(color: Colors.black),
+        ),
+        tileColor: isSelected ? const Color(0xFFE0D7FF) : Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        onTap: onTap,
+      );
+    }
 
     return Drawer(
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
+          const SizedBox(height: 40),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'College Notes',
+              'Hi, Ratna Amalia!',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+                fontSize: 22,
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
+          const SizedBox(height: 30),
+          buildTile(
+            icon: Icons.home,
+            title: 'Home',
+            routeName: '/',
             onTap: () {
-              // Jika sudah di HomePage, cukup tutup drawer
-              if (isHomePage) {
+              if (currentRoute == '/') {
                 Navigator.pop(context);
               } else {
-                // Jika dari halaman lain, kembali ke Home dan hapus tumpukan
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                     builder: (context) => HomePage(themeNotifier: themeNotifier),
-                    // Beri nama rute agar bisa dideteksi
                     settings: const RouteSettings(name: '/'),
                   ),
-                  (route) => false, // Hapus semua rute sebelumnya
+                      (route) => false,
                 );
               }
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Pusat Pengingat'),
+          buildTile(
+            icon: Icons.notifications_active_outlined,
+            title: 'Pusat Pengingat',
+            routeName: '/reminder',
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push, bukan pushReplacement
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ReminderCenterPage(
                     allNotes: HomePage.notes,
                   ),
+                  settings: const RouteSettings(name: '/reminder'),
                 ),
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.archive),
-            title: const Text('Archive'),
+          buildTile(
+            icon: Icons.archive,
+            title: 'Archive',
+            routeName: '/archive',
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ArchivePage(
-                    themeNotifier: themeNotifier,
-                  ),
+                  builder: (context) => ArchivePage(themeNotifier: themeNotifier),
+                  settings: const RouteSettings(name: '/archive'),
                 ),
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.delete),
-            title: const Text('Trash'),
+          buildTile(
+            icon: Icons.delete,
+            title: 'Trash',
+            routeName: '/trash',
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TrashPage(
-                    themeNotifier: themeNotifier,
-                  ),
+                  builder: (context) => TrashPage(themeNotifier: themeNotifier),
+                  settings: const RouteSettings(name: '/trash'),
                 ),
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.pie_chart),
-            title: const Text('Statistics'),
+          buildTile(
+            icon: Icons.pie_chart,
+            title: 'Statistics',
+            routeName: '/stats',
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => StatsPage(
-                    themeNotifier: themeNotifier,
-                  ),
+                  builder: (context) => StatsPage(themeNotifier: themeNotifier),
+                  settings: const RouteSettings(name: '/stats'),
                 ),
               );
             },
           ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(),
+          ),
+          buildTile(
+            icon: Icons.settings,
+            title: 'Settings',
+            routeName: '/settings',
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push( // Gunakan push
+              Navigator.pop(context);
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SettingsPage(
-                    themeNotifier: themeNotifier,
-                  ),
+                  builder: (context) => SettingsPage(themeNotifier: themeNotifier),
+                  settings: const RouteSettings(name: '/settings'),
                 ),
               );
             },
