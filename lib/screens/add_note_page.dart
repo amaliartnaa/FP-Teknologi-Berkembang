@@ -241,12 +241,10 @@ class _AddNotePageState extends State<AddNotePage> {
 
   Future<void> _pickAndInsertImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
-    print('Attempting to pick image from source: $source');
     try {
       final XFile? pickedFile = await picker.pickImage(source: source);
 
       if (pickedFile != null) {
-        print('Image picked successfully: ${pickedFile.path}');
         try {
           final appDocDir = await getApplicationDocumentsDirectory();
           final String fileName = p.basename(pickedFile.path);
@@ -254,41 +252,20 @@ class _AddNotePageState extends State<AddNotePage> {
 
           final File newImage = await File(pickedFile.path).copy(newPath);
 
-          final currentText = _contentController.text;
-          final selection = _contentController.selection;
-          final newText = currentText.replaceRange(
-            selection.start,
-            selection.end,
-            '[GAMBAR:${fileName}]',
-          );
-          _contentController.text = newText;
-          _contentController.selection = TextSelection.collapsed(
-              offset: selection.start + '[GAMBAR:${fileName}]'.length);
-
           setState(() {
             _imagePaths.add(newImage.path);
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gambar berhasil ditambahkan! Placeholder disisipkan.')),
+            const SnackBar(content: Text('Gambar berhasil ditambahkan!')),
           );
-          print('Image saved and placeholder inserted: ${newImage.path}');
-        } catch (e, stacktrace) {
-          print('Error copying or saving image: $e');
-          print('Stack trace: $stacktrace');
+        } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Gagal menyimpan gambar: $e')),
           );
         }
-      } else {
-        print('Image picking cancelled by user.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pemilihan gambar dibatalkan.')),
-        );
       }
-    } on Exception catch (e, stacktrace) {
-      print('Error from ImagePicker (exception caught): $e');
-      print('Stack trace: $stacktrace');
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan saat memilih gambar: $e')),
       );
@@ -296,7 +273,6 @@ class _AddNotePageState extends State<AddNotePage> {
   }
 
   Future<void> _pickAndInsertOtherFile() async {
-    print('Attempting to pick other file...');
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -305,7 +281,6 @@ class _AddNotePageState extends State<AddNotePage> {
 
       if (result != null && result.files.single.path != null) {
         final pickedFile = result.files.single;
-        print('File picked successfully: ${pickedFile.path}');
         try {
           final appDocDir = await getApplicationDocumentsDirectory();
           final String fileName = pickedFile.name;
@@ -313,41 +288,20 @@ class _AddNotePageState extends State<AddNotePage> {
 
           final File newFile = await File(pickedFile.path!).copy(newPath);
 
-          final currentText = _contentController.text;
-          final selection = _contentController.selection;
-          final newText = currentText.replaceRange(
-            selection.start,
-            selection.end,
-            '[FILE:${fileName}]',
-          );
-          _contentController.text = newText;
-          _contentController.selection = TextSelection.collapsed(
-              offset: selection.start + '[FILE:${fileName}]'.length);
-
           setState(() {
             _otherFilePaths.add(newFile.path);
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('File ${fileName} berhasil ditambahkan! Placeholder disisipkan.')),
+            SnackBar(content: Text('File ${fileName} berhasil ditambahkan!')),
           );
-          print('File saved and placeholder inserted: ${newFile.path}');
-        } catch (e, stacktrace) {
-          print('Error copying or saving file: $e');
-          print('Stack trace: $stacktrace');
+        } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Gagal menyimpan file: $e')),
           );
         }
-      } else {
-        print('File picking cancelled by user.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pemilihan file dibatalkan.')),
-        );
       }
-    } on Exception catch (e, stacktrace) {
-      print('Error from FilePicker (exception caught): $e');
-      print('Stack trace: $stacktrace');
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan saat memilih file: $e')),
       );
