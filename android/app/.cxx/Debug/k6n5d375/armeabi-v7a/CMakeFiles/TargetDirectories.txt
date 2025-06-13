@@ -1,0 +1,2 @@
+C:/Coding/fp-tekber/crud_notes/android/app/.cxx/Debug/k6n5d375/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Coding/fp-tekber/crud_notes/android/app/.cxx/Debug/k6n5d375/armeabi-v7a/CMakeFiles/rebuild_cache.dir

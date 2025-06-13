@@ -1,3 +1,17 @@
+// android/build.gradle (INI FILE YANG HARUS DIUBAH DAN DILENGKAPI)
+buildscript {
+    ext.kotlin_version = '1.9.0' // Pastikan versi Kotlin ini atau yang lebih baru
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // INI PENTING: Tentukan versi Android Gradle Plugin (AGP)
+        classpath 'com.android.tools.build:gradle:8.3.1' // Gunakan versi ini atau 8.3.1 / 8.4.0
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
 allprojects {
     repositories {
         google()

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/set_reminder_page.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 
 class AddNotePage extends StatefulWidget {
   final Note? note;
@@ -23,6 +28,8 @@ class _AddNotePageState extends State<AddNotePage> {
   bool _isArchived = false;
   bool _isTrashed = false;
   DateTime? _reminder;
+  List<String> _imagePaths = [];
+  List<String> _otherFilePaths = [];
 
   final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
 
@@ -43,6 +50,8 @@ class _AddNotePageState extends State<AddNotePage> {
       _isArchived = widget.note!.isArchived;
       _isTrashed = widget.note!.isTrashed;
       _reminder = widget.note!.reminder;
+      _imagePaths = List<String>.from(widget.note!.imagePaths ?? []);
+      _otherFilePaths = List<String>.from(widget.note!.otherFilePaths ?? []);
       _tags.add(_selectedTag);
     } else {
       _createdAt = DateTime.now();
@@ -74,6 +83,8 @@ class _AddNotePageState extends State<AddNotePage> {
         isArchived: _isArchived,
         isTrashed: _isTrashed,
         reminder: _reminder,
+        imagePaths: _imagePaths,
+        otherFilePaths: _otherFilePaths,
       );
       Navigator.pop(context, note);
     }
@@ -184,6 +195,179 @@ class _AddNotePageState extends State<AddNotePage> {
     _tagController.clear();
   }
 
+  Future<void> _showAttachmentSourceDialog() async {
+    print('Trying to show attachment source dialog...');
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Pilih Lampiran'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Akses Kamera (Gambar)'),
+                onTap: () {
+                  print('User selected Camera.');
+                  Navigator.pop(context);
+                  _pickAndInsertImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Akses Media File (Gambar)'),
+                onTap: () {
+                  print('User selected Media File (Gallery).');
+                  Navigator.pop(context);
+                  _pickAndInsertImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description),
+                title: const Text('Akses File Lain (PDF, DOC, PPTX)'),
+                onTap: () {
+                  print('User selected Other Files.');
+                  Navigator.pop(context);
+                  _pickAndInsertOtherFile();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndInsertImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    print('Attempting to pick image from source: $source');
+    try {
+      final XFile? pickedFile = await picker.pickImage(source: source);
+
+      if (pickedFile != null) {
+        print('Image picked successfully: ${pickedFile.path}');
+        try {
+          final appDocDir = await getApplicationDocumentsDirectory();
+          final String fileName = p.basename(pickedFile.path);
+          final String newPath = p.join(appDocDir.path, fileName);
+
+          final File newImage = await File(pickedFile.path).copy(newPath);
+
+          final currentText = _contentController.text;
+          final selection = _contentController.selection;
+          final newText = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            '[GAMBAR:${fileName}]',
+          );
+          _contentController.text = newText;
+          _contentController.selection = TextSelection.collapsed(
+              offset: selection.start + '[GAMBAR:${fileName}]'.length);
+
+          setState(() {
+            _imagePaths.add(newImage.path);
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gambar berhasil ditambahkan! Placeholder disisipkan.')),
+          );
+          print('Image saved and placeholder inserted: ${newImage.path}');
+        } catch (e, stacktrace) {
+          print('Error copying or saving image: $e');
+          print('Stack trace: $stacktrace');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal menyimpan gambar: $e')),
+          );
+        }
+      } else {
+        print('Image picking cancelled by user.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pemilihan gambar dibatalkan.')),
+        );
+      }
+    } on Exception catch (e, stacktrace) {
+      print('Error from ImagePicker (exception caught): $e');
+      print('Stack trace: $stacktrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan saat memilih gambar: $e')),
+      );
+    }
+  }
+
+  Future<void> _pickAndInsertOtherFile() async {
+    print('Attempting to pick other file...');
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final pickedFile = result.files.single;
+        print('File picked successfully: ${pickedFile.path}');
+        try {
+          final appDocDir = await getApplicationDocumentsDirectory();
+          final String fileName = pickedFile.name;
+          final String newPath = p.join(appDocDir.path, fileName);
+
+          final File newFile = await File(pickedFile.path!).copy(newPath);
+
+          final currentText = _contentController.text;
+          final selection = _contentController.selection;
+          final newText = currentText.replaceRange(
+            selection.start,
+            selection.end,
+            '[FILE:${fileName}]',
+          );
+          _contentController.text = newText;
+          _contentController.selection = TextSelection.collapsed(
+              offset: selection.start + '[FILE:${fileName}]'.length);
+
+          setState(() {
+            _otherFilePaths.add(newFile.path);
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('File ${fileName} berhasil ditambahkan! Placeholder disisipkan.')),
+          );
+          print('File saved and placeholder inserted: ${newFile.path}');
+        } catch (e, stacktrace) {
+          print('Error copying or saving file: $e');
+          print('Stack trace: $stacktrace');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal menyimpan file: $e')),
+          );
+        }
+      } else {
+        print('File picking cancelled by user.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pemilihan file dibatalkan.')),
+        );
+      }
+    } on Exception catch (e, stacktrace) {
+      print('Error from FilePicker (exception caught): $e');
+      print('Stack trace: $stacktrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan saat memilih file: $e')),
+      );
+    }
+  }
+
+  void _removeImage(String imagePath) {
+    setState(() {
+      _imagePaths.remove(imagePath);
+    });
+    print('Image path removed: $imagePath. Current image paths: $_imagePaths');
+  }
+
+  void _removeOtherFile(String filePath) {
+    setState(() {
+      _otherFilePaths.remove(filePath);
+    });
+    print('File path removed: $filePath. Current other file paths: $_otherFilePaths');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -268,15 +452,15 @@ class _AddNotePageState extends State<AddNotePage> {
                       const PopupMenuItem<String>(
                         value: 'add',
                         child:
-                            Row(children: [Icon(Icons.add), Text('Add Tag')]),
+                        Row(children: [Icon(Icons.add), Text('Add Tag')]),
                       ),
                       ..._tags.map((tag) => PopupMenuItem<String>(
-                            value: 'edit:$tag',
-                            child: Row(children: [
-                              const Icon(Icons.edit),
-                              Text('Edit $tag')
-                            ]),
-                          )),
+                        value: 'edit:$tag',
+                        child: Row(children: [
+                          const Icon(Icons.edit),
+                          Text('Edit $tag')
+                        ]),
+                      )),
                     ];
                   },
                 ),
@@ -294,13 +478,13 @@ class _AddNotePageState extends State<AddNotePage> {
               ),
               trailing: _reminder != null
                   ? IconButton(
-                      icon: const Icon(Icons.clear, color: Colors.red),
-                      onPressed: () {
-                        setState(() {
-                          _reminder = null;
-                        });
-                      },
-                    )
+                icon: const Icon(Icons.clear, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _reminder = null;
+                  });
+                },
+              )
                   : null,
               onTap: _navigateToSetReminderPage,
             ),
@@ -317,6 +501,84 @@ class _AddNotePageState extends State<AddNotePage> {
                 return null;
               },
             ),
+            if (_imagePaths.isNotEmpty) ...[
+              const SizedBox(height: 16.0),
+              const Text('Gambar Terlampir:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8.0),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: _imagePaths.map((imagePath) {
+                  return Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.file(
+                          File(imagePath),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print('Error loading image from path: $imagePath');
+                            print('Error: $error');
+                            print('Stack Trace: $stackTrace');
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.broken_image, size: 40),
+                            );
+                          },
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(imagePath),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ],
+            if (_otherFilePaths.isNotEmpty) ...[
+              const SizedBox(height: 16.0),
+              const Text('File Terlampir:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _otherFilePaths.map((filePath) {
+                  final fileName = p.basename(filePath);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insert_drive_file, color: Colors.blue),
+                        const SizedBox(width: 8.0),
+                        Expanded(child: Text(fileName)),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                          onPressed: () => _removeOtherFile(filePath),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
             if (_isEditing) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
@@ -331,9 +593,16 @@ class _AddNotePageState extends State<AddNotePage> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
+            const SizedBox(height: 80),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAttachmentSourceDialog,
+        mini: true,
+        child: const Icon(Icons.attach_file),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartFloat,
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Note {
   String id;
   String title;
@@ -9,6 +11,8 @@ class Note {
   bool isArchived;
   bool isTrashed;
   DateTime? reminder;
+  List<String>? imagePaths;
+  List<String>? otherFilePaths;
 
   Note({
     required this.id,
@@ -21,6 +25,8 @@ class Note {
     this.isArchived = false,
     this.isTrashed = false,
     this.reminder,
+    this.imagePaths,
+    this.otherFilePaths,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +41,8 @@ class Note {
       'isArchived': isArchived,
       'isTrashed': isTrashed,
       'reminder': reminder?.toIso8601String(),
+      'imagePaths': imagePaths,
+      'otherFilePaths': otherFilePaths,
     };
   }
 
@@ -50,7 +58,9 @@ class Note {
       isArchived: map['isArchived'] ?? false,
       isTrashed: map['isTrashed'] ?? false,
       reminder:
-          map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
+      map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
+      imagePaths: map['imagePaths'] != null ? List<String>.from(map['imagePaths']) : null,
+      otherFilePaths: map['otherFilePaths'] != null ? List<String>.from(map['otherFilePaths']) : null,
     );
   }
 }
