@@ -219,10 +219,11 @@ class _HomePageState extends State<HomePage> {
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .collection('notes')
-            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
             .snapshots(),
-        builder: (context, snapshot) {
+          builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Terjadi kesalahan.'));
           }

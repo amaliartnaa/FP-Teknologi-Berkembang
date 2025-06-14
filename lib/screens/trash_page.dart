@@ -56,8 +56,9 @@ class _TrashPageState extends State<TrashPage> {
       // Gunakan StreamBuilder untuk mendapatkan data real-time
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .collection('notes')
-            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
