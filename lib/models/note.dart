@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class Note {
   String id;
   String title;
@@ -43,7 +45,7 @@ class Note {
       'reminder': reminder?.toIso8601String(),
       'imagePaths': imagePaths,
       'otherFilePaths': otherFilePaths,
-      'userId': userId,
+      'userId': FirebaseAuth.instance.currentUser!.uid,
     };
   }
 

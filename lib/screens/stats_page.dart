@@ -1,6 +1,7 @@
 // lib/screens/stats_page.dart (Lengkap & Diperbaiki)
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/app_drawer.dart';
@@ -27,7 +28,10 @@ class StatsPage extends StatelessWidget {
       ),
       // Ganti body dengan StreamBuilder
       body: StreamBuilder<QuerySnapshot>(
-        stream: firestoreService.getNotesStream(),
+        stream: FirebaseFirestore.instance
+            .collection('notes')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));

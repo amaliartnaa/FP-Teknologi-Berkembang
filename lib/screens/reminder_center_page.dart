@@ -1,6 +1,7 @@
 // lib/screens/reminder_center_page.dart (Lengkap & Diperbaiki)
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
@@ -21,7 +22,10 @@ class ReminderCenterPage extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: firestoreService.getNotesStream(),
+        stream: FirebaseFirestore.instance
+            .collection('notes')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return _buildEmptyState();
