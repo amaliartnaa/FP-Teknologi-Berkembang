@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_crud_app/screens/login_page.dart';
 
@@ -16,17 +17,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                LoginPage(themeNotifier: widget.themeNotifier),
-          ),
-        );
-      }
-    });
+    _timer = Timer(const Duration(seconds: 2), _checkLoginStatus);
+  }
+
+  void _checkLoginStatus() {
+    final user = FirebaseAuth.instance.currentUser;
+    final nextPage = user != null
+        ? LoginPage(themeNotifier: widget.themeNotifier)
+        : LoginPage(themeNotifier: widget.themeNotifier);
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => nextPage),
+      );
+    }
   }
 
   @override
