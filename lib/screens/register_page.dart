@@ -16,16 +16,37 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _register() async {
+    // Cek jika sudah loading, jangan jalankan lagi
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua field harus diisi.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Semua field harus diisi.')),
+        );
+      }
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
@@ -35,7 +56,13 @@ class _RegisterPageState extends State<RegisterPage> {
         password: password,
       );
 
+      // <-- Perbaikan: Tambahkan pengecekan mounted
+      if (!mounted) return;
+
       await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
+
+      // <-- Perbaikan: Tambahkan pengecekan mounted
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registrasi berhasil. Silahkan login')),
@@ -47,23 +74,25 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
           (route) => false,
       );
+
     } on FirebaseAuthException catch (e) {
+      // <-- Perbaikan: Tambahkan pengecekan mounted
+      if (!mounted) return;
+      
       String message = 'Registrasi gagal.';
       if (e.code == 'email-already-in-use') {
         message = 'Email sudah terdaftar';
       } else if (e.code == 'weak-password') {
-        message = 'Password minimal mengadung 6 karakter';
+        message = 'Password minimal mengandung 6 karakter';
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 
   @override
@@ -119,16 +148,22 @@ class _RegisterPageState extends State<RegisterPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _register,
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       shape: const StadiumBorder(),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.deepPurple.shade300,
                     ),
-                    child: const Text(
-                      'Register',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
+                    child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : const Text(
+                          'Register',
+                          style: TextStyle(fontSize: 20, color: Colors.white),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -145,7 +180,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              Navigator.pop(context);
+                              if (!_isLoading) {
+                                Navigator.pop(context);
+                              }
                             }),
                     ],
                   ),
