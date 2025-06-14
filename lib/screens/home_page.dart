@@ -1,16 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- Tambahkan import ini
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:notes_crud_app/services/firestore_service.dart'; // <-- Tambahkan import service
+import 'package:notes_crud_app/services/firestore_service.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
 import 'app_drawer.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  // Kita tidak lagi memerlukan list statis di sini.
-  // static List<Note> notes = [ ... ]; // <-- HAPUS BAGIAN INI
-
   final ValueNotifier<ThemeMode> themeNotifier;
   const HomePage({super.key, required this.themeNotifier});
 
@@ -19,7 +16,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Buat instance dari FirestoreService
   final FirestoreService _firestoreService = FirestoreService();
 
   List<Note> allNotes = [];
@@ -33,24 +29,21 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Kita tidak memanggil _updateFilteredNotes di sini lagi,
-    // karena StreamBuilder yang akan menangani pengambilan data awal.
     searchController.addListener(() {
-      // Panggil setState agar UI di-rebuild saat user mengetik
-      setState(() {
-        // Logika filter akan dijalankan di dalam StreamBuilder
-      });
+      setState(() {});
     });
   }
 
   void _filterAndSortNotes(List<Note> notes) {
-    // Fungsi ini sekarang menerima list notes dari StreamBuilder
-    // dan melakukan filter/sort berdasarkan state widget.
-
     List<Note> activeNotes =
         notes.where((note) => !note.isArchived && !note.isTrashed).toList();
 
     availableTags = activeNotes.map((note) => note.tag).toSet();
+    
+    // Pastikan selectedTag masih ada di availableTags
+    if (!availableTags.contains(selectedTag) && selectedTag != 'All') {
+      selectedTag = 'All';
+    }
 
     List<Note> tagFiltered;
     if (selectedTag == 'All') {
@@ -78,10 +71,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Navigasi ke AddNotePage tidak perlu diubah secara signifikan
   Future<void> _addOrEditNote(Note? note) async {
-    // Navigasi saja. StreamBuilder akan otomatis memperbarui UI
-    // jika ada data yang berubah setelah kembali dari halaman ini.
     await Navigator.push<Note>(
       context,
       MaterialPageRoute(
@@ -90,23 +80,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Ubah method ini untuk memanggil FirestoreService
   void _moveToTrash(Note note) {
     note.isTrashed = true;
     _firestoreService.updateNote(note);
-    // Tidak perlu setState, StreamBuilder akan handle
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Note moved to trash.')),
+      const SnackBar(content: Text('Catatan dipindahkan ke sampah.')),
     );
   }
 
-  // Ubah method ini untuk memanggil FirestoreService
   void _archiveNote(Note note) {
     note.isArchived = true;
     _firestoreService.updateNote(note);
-    // Tidak perlu setState, StreamBuilder akan handle
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Note archived.')),
+      const SnackBar(content: Text('Catatan diarsipkan.')),
     );
   }
 
@@ -170,7 +156,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ... (Kode AppBar Anda tidak berubah, bisa disalin dari file lama)
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
@@ -230,11 +215,9 @@ class _HomePageState extends State<HomePage> {
               ],
       ),
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
-      // INI BAGIAN UTAMA YANG BERUBAH: MENGGUNAKAN StreamBuilder
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestoreService.getNotesStream(),
         builder: (context, snapshot) {
-          // --- Handle Loading dan Error ---
           if (snapshot.hasError) {
             return const Center(child: Text('Terjadi kesalahan.'));
           }
@@ -242,19 +225,16 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // --- Ubah data Firestore menjadi List<Note> ---
           allNotes = snapshot.data!.docs.map((doc) {
             Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
             return Note.fromMap({
               ...data,
-              'id': doc.id, // Ambil ID dokumen dari Firestore
+              'id': doc.id,
             });
           }).toList();
 
-          // --- Jalankan logika filter dan sort di sini ---
           _filterAndSortNotes(allNotes);
 
-          // --- Tampilkan UI berdasarkan `filteredNotes` ---
           if (filteredNotes.isEmpty) {
             return Center(
               child: Column(
@@ -347,7 +327,8 @@ class _HomePageState extends State<HomePage> {
                                     DateFormat('d MMM, h:mm a')
                                         .format(note.reminder!),
                                     style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
+                                      color:
+                                          Theme.of(context).primaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -369,13 +350,19 @@ class _HomePageState extends State<HomePage> {
                         side: BorderSide.none,
                       ),
                       onTap: () async {
-                        // Navigasi ke detail page tidak perlu diubah
-                        await Navigator.push(
+                        // INI BAGIAN YANG DIPERBAIKI
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => NoteDetailPage(note: note),
                           ),
                         );
+
+                        if (result == 'archive') {
+                          _archiveNote(note);
+                        } else if (result == 'delete') {
+                          _moveToTrash(note);
+                        }
                       },
                     ),
                   ),
