@@ -1,6 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:notes_crud_app/main.dart';
 import 'package:notes_crud_app/screens/home_page.dart';
 import 'package:notes_crud_app/screens/register_page.dart';
 
@@ -17,15 +17,17 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     try {
-      MyApp.users.firstWhere(
-        (user) => user.email == email && user.password == password,
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -33,9 +35,23 @@ class _LoginPageState extends State<LoginPage> {
               HomePage(themeNotifier: widget.themeNotifier),
         ),
       );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      if (e.code == 'invalid-credential') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email atau password salah.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login gagal: ${e.code}')),
+        );
+      }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login gagal. Periksa email/password.')),
+        const SnackBar(content: Text('Terjadi kesalahan. Coba lagi nanti.')),
       );
     }
   }

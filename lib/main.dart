@@ -3,13 +3,6 @@ import 'screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-class User {
-  final String name;
-  final String email;
-  final String password;
-  User({required this.name, required this.email, required this.password});
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -20,8 +13,6 @@ void main() async {
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
-  static List<User> users = [];
 
   @override
   State<MyApp> createState() => _MyAppState();
