@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-// Definisi class User
 class User {
   final String name;
   final String email;
@@ -9,14 +10,17 @@ class User {
   User({required this.name, required this.email, required this.password});
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // List statis users
   static List<User> users = [];
 
   @override

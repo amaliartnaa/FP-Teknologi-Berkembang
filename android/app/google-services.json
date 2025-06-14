@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "281712028885",
+    "project_id": "sicatat-bc5d5",
+    "storage_bucket": "sicatat-bc5d5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281712028885:android:cc73bfd36f2b04ed81c65c",
+        "android_client_info": {
+          "package_name": "com.example.notes_crud_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0EI9gMiL6k067Phc1kE47jGWiTVfn4jY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
