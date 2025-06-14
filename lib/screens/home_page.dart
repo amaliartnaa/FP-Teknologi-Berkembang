@@ -1,252 +1,380 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:notes_crud_app/services/firestore_service.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
+import 'app_drawer.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final ValueNotifier<ThemeMode> themeNotifier;
+  const HomePage({super.key, required this.themeNotifier});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Note> notes = [];
+  final FirestoreService _firestoreService = FirestoreService();
+
+  List<Note> allNotes = [];
   List<Note> filteredNotes = [];
   String selectedTag = 'All';
-  TextEditingController searchController = TextEditingController();
-  Set<String> availableTags = {'Math', 'Physics', 'Chemistry', 'Biology'};
-  String sortOrder = 'desc'; // Default sorting order (descending)
+  final TextEditingController searchController = TextEditingController();
+  Set<String> availableTags = {};
+  String sortOrder = 'desc';
+  bool _isSearching = false;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with sample data (or load from storage)
-    notes = [
-      Note(
-        id: '1',
-        title: 'Sample Math Note',
-        content: 'This is a sample math note',
-        tag: 'Math',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Note(
-        id: '2',
-        title: 'Sample Physics Note',
-        content: 'This is a sample physics note',
-        tag: 'Physics',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-    filteredNotes = notes;
-    _sortNotes();
-    _updateAvailableTags();
-  }
-
-  void _updateAvailableTags() {
-    setState(() {
-      availableTags = notes.map((note) => note.tag).toSet();
+    searchController.addListener(() {
+      setState(() {});
     });
   }
 
-  void _sortNotes() {
-    setState(() {
-      if (sortOrder == 'asc') {
-        filteredNotes
-            .sort((a, b) => a.createdAt.compareTo(b.createdAt)); // Ascending
-      } else {
-        filteredNotes
-            .sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Descending
-      }
-    });
-  }
+  void _filterAndSortNotes(List<Note> notes) {
+    List<Note> activeNotes =
+        notes.where((note) => !note.isArchived && !note.isTrashed).toList();
 
-  void filterNotes(String query) {
-    setState(() {
-      final lowerCaseQuery = query.toLowerCase(); // Store lowercase query
+    availableTags = activeNotes.map((note) => note.tag).toSet();
+    
+    // Pastikan selectedTag masih ada di availableTags
+    if (!availableTags.contains(selectedTag) && selectedTag != 'All') {
+      selectedTag = 'All';
+    }
 
-      if (selectedTag == 'All') {
-        filteredNotes = notes
-            .where((note) =>
-                note.title.toLowerCase().contains(lowerCaseQuery) ||
-                note.content.toLowerCase().contains(lowerCaseQuery))
-            .toList();
-      } else {
-        filteredNotes = notes
-            .where((note) =>
-                note.tag == selectedTag &&
-                (note.title.toLowerCase().contains(lowerCaseQuery) ||
-                    note.content.toLowerCase().contains(lowerCaseQuery)))
-            .toList();
-      }
-    });
+    List<Note> tagFiltered;
+    if (selectedTag == 'All') {
+      tagFiltered = activeNotes;
+    } else {
+      tagFiltered =
+          activeNotes.where((note) => note.tag == selectedTag).toList();
+    }
+
+    final query = searchController.text.toLowerCase();
+    if (query.isEmpty) {
+      filteredNotes = tagFiltered;
+    } else {
+      filteredNotes = tagFiltered
+          .where((note) =>
+              note.title.toLowerCase().contains(query) ||
+              note.subtitle.toLowerCase().contains(query))
+          .toList();
+    }
+
+    if (sortOrder == 'asc') {
+      filteredNotes.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+    } else {
+      filteredNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    }
   }
 
   Future<void> _addOrEditNote(Note? note) async {
-    final result = await Navigator.push(
+    await Navigator.push<Note>(
       context,
       MaterialPageRoute(
         builder: (context) => AddNotePage(note: note),
       ),
     );
-
-    if (result != null && result is Note) {
-      setState(() {
-        if (note != null) {
-          // Editing existing note
-          final index = notes.indexWhere((n) => n.id == note.id);
-          if (index != -1) {
-            notes[index] = result;
-          }
-        } else {
-          // Adding new note
-          result.id = DateTime.now().toString(); // Simple ID generation
-          notes.add(result);
-        }
-        _updateAvailableTags(); // Update available tags
-        filterNotes(searchController.text);
-      });
-    }
   }
 
-  Future<void> _deleteNote(Note note) async {
-    setState(() {
-      notes.removeWhere((n) => n.id == note.id);
-      _updateAvailableTags(); // Update available tags after deletion
-      if (!availableTags.contains(selectedTag) && selectedTag != 'All') {
-        selectedTag =
-            'All'; // Reset to 'All' if the selected tag no longer exists
-      }
-      filterNotes(searchController.text);
-    });
+  void _moveToTrash(Note note) {
+    note.isTrashed = true;
+    _firestoreService.updateNote(note);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Catatan dipindahkan ke sampah.')),
+    );
+  }
+
+  void _archiveNote(Note note) {
+    note.isArchived = true;
+    _firestoreService.updateNote(note);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Catatan diarsipkan.')),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter Berdasarkan Tag',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  FilterChip(
+                    label: const Text('All'),
+                    selected: selectedTag == 'All',
+                    onSelected: (bool selected) {
+                      setState(() {
+                        selectedTag = 'All';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ...availableTags.map((tag) => FilterChip(
+                        label: Text(tag),
+                        selected: selectedTag == tag,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            selectedTag = tag;
+                          });
+                          Navigator.pop(context);
+                        },
+                      )),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getColorForTag(String tag) {
+    final hash = tag.hashCode;
+    return Colors.primaries[hash % Colors.primaries.length];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('College Notes'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(110),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: searchController,
-                  decoration: const InputDecoration(
-                    hintText: 'Search notes...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  onChanged: (value) =>
-                      filterNotes(value), // Directly call filterNotes
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    FilterChip(
-                      selected: selectedTag == 'All',
-                      label: const Text('All'),
-                      onSelected: (bool selected) {
-                        setState(() {
-                          selectedTag = 'All';
-                          filterNotes(searchController.text);
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    ...availableTags
-                        .map((tag) => Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: FilterChip(
-                                selected: selectedTag == tag,
-                                label: Text(tag),
-                                onSelected: (bool selected) {
-                                  setState(() {
-                                    selectedTag = tag;
-                                    filterNotes(searchController.text);
-                                  });
-                                },
-                              ),
-                            )),
-                  ],
-                ),
-              ),
-            ],
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: [
-          // Dropdown for sorting
-          PopupMenuButton<String>(
-            onSelected: (String value) {
-              setState(() {
-                sortOrder = value;
-                _sortNotes(); // Re-sort notes
-              });
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                  value: 'asc',
-                  child: Text('Sort by Date (Oldest First)'),
+        title: _isSearching
+            ? TextField(
+                controller: searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Cari catatan...',
+                  border: InputBorder.none,
                 ),
-                const PopupMenuItem<String>(
-                  value: 'desc',
-                  child: Text('Sort by Date (Newest First)'),
-                ),
-              ];
-            },
-            icon: const Icon(Icons.sort),
-          ),
-        ],
-      ),
-      body: ListView.builder(
-        itemCount: filteredNotes.length,
-        itemBuilder: (context, index) {
-          final note = filteredNotes[index];
-          return Card(
-            margin: const EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text(note.title),
-              subtitle: Text(
-                note.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: Chip(label: Text(note.tag)),
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NoteDetailPage(note: note),
-                  ),
-                );
-
-                if (result != null) {
-                  if (result == 'delete') {
-                    _deleteNote(note);
-                  } else if (result is Note) {
+                onChanged: (value) => setState(() {}),
+              )
+            : const Text('SiCatat'),
+        centerTitle: true,
+        actions: _isSearching
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
                     setState(() {
-                      final index = notes.indexWhere((n) => n.id == result.id);
-                      if (index != -1) {
-                        notes[index] = result;
-                        _updateAvailableTags();
-                        filterNotes(searchController.text);
-                      }
+                      _isSearching = false;
+                      searchController.clear();
                     });
+                  },
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: _showFilterSheet,
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (String value) {
+                    setState(() {
+                      sortOrder = value;
+                    });
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(
+                        value: 'desc', child: Text('Sort by Newest')),
+                    const PopupMenuItem(
+                        value: 'asc', child: Text('Sort by Oldest')),
+                  ],
+                ),
+              ],
+      ),
+      drawer: AppDrawer(themeNotifier: widget.themeNotifier),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('notes')
+            .snapshots(),
+          builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Terjadi kesalahan.'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          allNotes = snapshot.data!.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            return Note.fromMap({
+              ...data,
+              'id': doc.id,
+            });
+          }).toList();
+
+          _filterAndSortNotes(allNotes);
+
+          if (filteredNotes.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icon_sicatat.png',
+                    height: 100,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Catatan tidak ditemukan",
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Coba kata kunci lain atau buat catatan baru.",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: filteredNotes.length,
+            itemBuilder: (context, index) {
+              final note = filteredNotes[index];
+              return Dismissible(
+                key: Key(note.id),
+                background: Container(
+                  color: Colors.red.shade400,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: Alignment.centerLeft,
+                  child: const Icon(Icons.delete_sweep, color: Colors.white),
+                ),
+                secondaryBackground: Container(
+                  color: Colors.orange.shade400,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: Alignment.centerRight,
+                  child: const Icon(Icons.archive, color: Colors.white),
+                ),
+                onDismissed: (direction) {
+                  if (direction == DismissDirection.endToStart) {
+                    _archiveNote(note);
+                  } else {
+                    _moveToTrash(note);
                   }
-                }
-              },
-              onLongPress: () => _showNoteOptions(context, note),
-            ),
+                },
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  margin: const EdgeInsets.symmetric(vertical: 6.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _getColorForTag(note.tag).withAlpha(77),
+                          _getColorForTag(note.tag).withAlpha(26),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16.0),
+                      title: Text(note.title,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(note.subtitle,
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
+                            if (note.reminder != null) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Icon(Icons.notifications,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    DateFormat('d MMM, h:mm a')
+                                        .format(note.reminder!),
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      trailing: Chip(
+                        label: Text(
+                          note.tag,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor:
+                            _getColorForTag(note.tag).withAlpha(179),
+                        side: BorderSide.none,
+                      ),
+                      onTap: () async {
+                        // INI BAGIAN YANG DIPERBAIKI
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NoteDetailPage(note: note),
+                          ),
+                        );
+
+                        if (result == 'archive') {
+                          _archiveNote(note);
+                        } else if (result == 'delete') {
+                          _moveToTrash(note);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -254,61 +382,6 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => _addOrEditNote(null),
         child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showNoteOptions(BuildContext context, Note note) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addOrEditNote(note);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title:
-                    const Text('Delete', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Delete Note'),
-                        content: const Text(
-                            'Are you sure you want to delete this note?'),
-                        actions: [
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          TextButton(
-                            child: const Text('Delete',
-                                style: TextStyle(color: Colors.red)),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _deleteNote(note);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
