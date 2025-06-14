@@ -11,6 +11,7 @@ class Note {
   DateTime? reminder;
   List<String>? imagePaths;
   List<String>? otherFilePaths;
+  String userId;
 
   Note({
     required this.id,
@@ -25,6 +26,7 @@ class Note {
     this.reminder,
     this.imagePaths,
     this.otherFilePaths,
+    required this.userId,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +43,7 @@ class Note {
       'reminder': reminder?.toIso8601String(),
       'imagePaths': imagePaths,
       'otherFilePaths': otherFilePaths,
+      'userId': userId,
     };
   }
 
@@ -59,6 +62,7 @@ class Note {
       map['reminder'] != null ? DateTime.parse(map['reminder']) : null,
       imagePaths: map['imagePaths'] != null ? List<String>.from(map['imagePaths']) : null,
       otherFilePaths: map['otherFilePaths'] != null ? List<String>.from(map['otherFilePaths']) : null,
+      userId: map['userId'],
     );
   }
 }

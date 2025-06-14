@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +38,7 @@ class _AddNotePageState extends State<AddNotePage> {
   bool _isLoading = false; // State untuk loading indicator
 
   final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
@@ -101,6 +103,7 @@ class _AddNotePageState extends State<AddNotePage> {
         reminder: _reminder,
         imagePaths: _imagePaths,
         otherFilePaths: _otherFilePaths,
+        userId: userId,
       );
 
       try {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/services/firestore_service.dart';
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   Set<String> availableTags = {};
   String sortOrder = 'desc';
   bool _isSearching = false;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
@@ -216,7 +218,10 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestoreService.getNotesStream(),
+        stream: FirebaseFirestore.instance
+            .collection('notes')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Terjadi kesalahan.'));
