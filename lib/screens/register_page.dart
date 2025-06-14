@@ -27,7 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    // Cek jika sudah loading, jangan jalankan lagi
     if (_isLoading) return;
 
     setState(() {
@@ -56,12 +55,10 @@ class _RegisterPageState extends State<RegisterPage> {
         password: password,
       );
 
-      // <-- Perbaikan: Tambahkan pengecekan mounted
       if (!mounted) return;
 
       await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
 
-      // <-- Perbaikan: Tambahkan pengecekan mounted
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +73,6 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
     } on FirebaseAuthException catch (e) {
-      // <-- Perbaikan: Tambahkan pengecekan mounted
       if (!mounted) return;
       
       String message = 'Registrasi gagal.';

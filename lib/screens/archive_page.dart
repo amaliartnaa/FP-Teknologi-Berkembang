@@ -1,5 +1,3 @@
-// lib/screens/archive_page.dart (Lengkap & Diperbaiki)
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -23,13 +21,11 @@ class _ArchivePageState extends State<ArchivePage> {
   final FirestoreService _firestoreService = FirestoreService();
 
   void _unarchiveNote(Note note) {
-    // Ubah status arsip dan update ke Firestore
     note.isArchived = false;
     _firestoreService.updateNote(note);
   }
 
   void _deleteNotePermanently(Note note) {
-    // Langsung hapus dari Firestore
     _firestoreService.deleteNote(note.id);
   }
 
@@ -42,7 +38,6 @@ class _ArchivePageState extends State<ArchivePage> {
       drawer: AppDrawer(
         themeNotifier: widget.themeNotifier,
       ),
-      // Ganti body dengan StreamBuilder
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -57,7 +52,6 @@ class _ArchivePageState extends State<ArchivePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Ambil semua notes, lalu filter yang diarsip
           final allNotes = snapshot.data!.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return Note.fromMap({...data, 'id': doc.id});

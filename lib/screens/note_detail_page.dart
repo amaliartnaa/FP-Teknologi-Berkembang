@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p; // <-- Impor paket path
+import 'package:path/path.dart' as p;
 import '../models/note.dart';
 import 'add_note_page.dart';
 
@@ -42,7 +42,6 @@ class NoteDetailPage extends StatelessWidget {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

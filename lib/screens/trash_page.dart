@@ -20,11 +20,7 @@ class TrashPage extends StatefulWidget {
 class _TrashPageState extends State<TrashPage> {
   final FirestoreService _firestoreService = FirestoreService();
 
-  // Getter lokal tidak diperlukan lagi
-  // List<Note> get _trashedNotes => HomePage.notes.where((note) => note.isTrashed).toList();
-
   void _restoreNote(Note note) {
-    // Panggil service untuk mengubah isTrashed menjadi false
     note.isTrashed = false;
     _firestoreService.updateNote(note);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -32,14 +28,12 @@ class _TrashPageState extends State<TrashPage> {
   }
 
   void _deleteNotePermanently(Note note) {
-    // Panggil service untuk menghapus note dari Firestore
     _firestoreService.deleteNote(note.id);
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Note deleted permanently')));
   }
 
   void _emptyTrash(List<Note> trashedNotes) {
-    // Hapus semua note yang ada di list sampah
     for (final note in trashedNotes) {
       _firestoreService.deleteNote(note.id);
     }
@@ -53,7 +47,6 @@ class _TrashPageState extends State<TrashPage> {
       drawer: AppDrawer(
         themeNotifier: widget.themeNotifier,
       ),
-      // Gunakan StreamBuilder untuk mendapatkan data real-time
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -68,7 +61,6 @@ class _TrashPageState extends State<TrashPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Ambil semua note dari snapshot, lalu filter yang 'isTrashed'
           final allNotes = snapshot.data!.docs.map((doc) {
             Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
             return Note.fromMap({...data, 'id': doc.id});

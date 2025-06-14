@@ -1,5 +1,3 @@
-// lib/screens/stats_page.dart (Lengkap & Diperbaiki)
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +24,6 @@ class StatsPage extends StatelessWidget {
       drawer: AppDrawer(
         themeNotifier: themeNotifier,
       ),
-      // Ganti body dengan StreamBuilder
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -46,7 +43,6 @@ class StatsPage extends StatelessWidget {
             return Note.fromMap({...data, 'id': doc.id});
           }).toList();
 
-          // Lakukan kalkulasi di sini
           final int totalNotes = allNotes
               .where((n) => !n.isTrashed && !n.isArchived)
               .length;

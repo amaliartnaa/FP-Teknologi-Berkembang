@@ -112,7 +112,6 @@ class _SetReminderPageState extends State<SetReminderPage> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                // Saat batal, kembalikan null untuk menandakan tidak ada perubahan
                 Navigator.pop(context, null);
               },
               child: const Text('Batal'),

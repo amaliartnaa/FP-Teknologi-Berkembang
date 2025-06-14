@@ -1,5 +1,3 @@
-// lib/screens/reminder_center_page.dart (Lengkap & Diperbaiki)
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +7,6 @@ import 'package:notes_crud_app/screens/note_detail_page.dart';
 import 'package:notes_crud_app/services/firestore_service.dart';
 
 class ReminderCenterPage extends StatelessWidget {
-  // Constructor sekarang tidak butuh parameter
   const ReminderCenterPage({super.key});
 
   @override

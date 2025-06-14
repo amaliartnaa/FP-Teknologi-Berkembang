@@ -1,5 +1,3 @@
-// lib/screens/app_drawer.dart (Lengkap & Diperbaiki)
-
 import 'package:flutter/material.dart';
 import 'package:notes_crud_app/screens/archive_page.dart';
 import 'package:notes_crud_app/screens/home_page.dart';
@@ -75,7 +73,6 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  // ReminderCenterPage akan mengambil datanya sendiri
                   builder: (context) => const ReminderCenterPage(),
                 ),
               );

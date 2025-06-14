@@ -41,8 +41,7 @@ class _HomePageState extends State<HomePage> {
         notes.where((note) => !note.isArchived && !note.isTrashed).toList();
 
     availableTags = activeNotes.map((note) => note.tag).toSet();
-    
-    // Pastikan selectedTag masih ada di availableTags
+
     if (!availableTags.contains(selectedTag) && selectedTag != 'All') {
       selectedTag = 'All';
     }
@@ -356,7 +355,6 @@ class _HomePageState extends State<HomePage> {
                         side: BorderSide.none,
                       ),
                       onTap: () async {
-                        // INI BAGIAN YANG DIPERBAIKI
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
