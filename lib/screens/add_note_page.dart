@@ -1,12 +1,12 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/set_reminder_page.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AddNotePage extends StatefulWidget {
   final Note? note;
@@ -196,7 +196,6 @@ class _AddNotePageState extends State<AddNotePage> {
   }
 
   Future<void> _showAttachmentSourceDialog() async {
-    print('Trying to show attachment source dialog...');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -208,28 +207,25 @@ class _AddNotePageState extends State<AddNotePage> {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Akses Kamera (Gambar)'),
-                onTap: () {
-                  print('User selected Camera.');
+                onTap: () async {
                   Navigator.pop(context);
-                  _pickAndInsertImage(ImageSource.camera);
+                  await _pickAndInsertImage(ImageSource.camera);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Akses Media File (Gambar)'),
-                onTap: () {
-                  print('User selected Media File (Gallery).');
+                onTap: () async {
                   Navigator.pop(context);
-                  _pickAndInsertImage(ImageSource.gallery);
+                  await _pickAndInsertImage(ImageSource.gallery);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.description),
                 title: const Text('Akses File Lain (PDF, DOC, PPTX)'),
-                onTap: () {
-                  print('User selected Other Files.');
+                onTap: () async {
                   Navigator.pop(context);
-                  _pickAndInsertOtherFile();
+                  await _pickAndInsertOtherFile();
                 },
               ),
             ],
@@ -243,29 +239,31 @@ class _AddNotePageState extends State<AddNotePage> {
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? pickedFile = await picker.pickImage(source: source);
+      if (!mounted || pickedFile == null) return;
 
-      if (pickedFile != null) {
-        try {
-          final appDocDir = await getApplicationDocumentsDirectory();
-          final String fileName = p.basename(pickedFile.path);
-          final String newPath = p.join(appDocDir.path, fileName);
+      try {
+        final appDocDir = await getApplicationDocumentsDirectory();
+        final String fileName = p.basename(pickedFile.path);
+        final String newPath = p.join(appDocDir.path, fileName);
 
-          final File newImage = await File(pickedFile.path).copy(newPath);
+        final File newImage = await File(pickedFile.path).copy(newPath);
 
-          setState(() {
-            _imagePaths.add(newImage.path);
-          });
+        setState(() {
+          _imagePaths.add(newImage.path);
+        });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gambar berhasil ditambahkan!')),
-          );
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan gambar: $e')),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gambar berhasil ditambahkan!')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan gambar: $e')),
+        );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan saat memilih gambar: $e')),
       );
@@ -279,29 +277,32 @@ class _AddNotePageState extends State<AddNotePage> {
         allowedExtensions: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'],
       );
 
-      if (result != null && result.files.single.path != null) {
-        final pickedFile = result.files.single;
-        try {
-          final appDocDir = await getApplicationDocumentsDirectory();
-          final String fileName = pickedFile.name;
-          final String newPath = p.join(appDocDir.path, fileName);
+      if (!mounted || result == null || result.files.single.path == null) return;
+      
+      final pickedFile = result.files.single;
+      try {
+        final appDocDir = await getApplicationDocumentsDirectory();
+        final String fileName = pickedFile.name;
+        final String newPath = p.join(appDocDir.path, fileName);
 
-          final File newFile = await File(pickedFile.path!).copy(newPath);
+        final File newFile = await File(pickedFile.path!).copy(newPath);
 
-          setState(() {
-            _otherFilePaths.add(newFile.path);
-          });
+        setState(() {
+          _otherFilePaths.add(newFile.path);
+        });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('File ${fileName} berhasil ditambahkan!')),
-          );
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan file: $e')),
-          );
-        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File $fileName berhasil ditambahkan!')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan file: $e')),
+        );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan saat memilih file: $e')),
       );
@@ -312,14 +313,12 @@ class _AddNotePageState extends State<AddNotePage> {
     setState(() {
       _imagePaths.remove(imagePath);
     });
-    print('Image path removed: $imagePath. Current image paths: $_imagePaths');
   }
 
   void _removeOtherFile(String filePath) {
     setState(() {
       _otherFilePaths.remove(filePath);
     });
-    print('File path removed: $filePath. Current other file paths: $_otherFilePaths');
   }
 
   @override
@@ -473,9 +472,6 @@ class _AddNotePageState extends State<AddNotePage> {
                           height: 100,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            print('Error loading image from path: $imagePath');
-                            print('Error: $error');
-                            print('Stack Trace: $stackTrace');
                             return Container(
                               width: 100,
                               height: 100,

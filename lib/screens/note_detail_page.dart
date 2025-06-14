@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p; // <-- Impor paket path
 import '../models/note.dart';
 import 'add_note_page.dart';
 
@@ -120,7 +122,78 @@ class NoteDetailPage extends StatelessWidget {
                   .bodyLarge
                   ?.copyWith(fontSize: 16, height: 1.5),
             ),
-            const SizedBox(height: 32.0),
+            const SizedBox(height: 16.0),
+            
+            // =======================================================
+            // === AWAL DARI KODE BARU UNTUK MENAMPILKAN LAMPIRAN ===
+            // =======================================================
+
+            // --- Tampilkan Gambar Terlampir ---
+            if (note.imagePaths != null && note.imagePaths!.isNotEmpty) ...[
+              const SizedBox(height: 16.0),
+              const Divider(),
+              const SizedBox(height: 16.0),
+              const Text('Gambar Terlampir:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12.0),
+              Wrap(
+                spacing: 10.0,
+                runSpacing: 10.0,
+                children: note.imagePaths!.map((imagePath) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.file(
+                      File(imagePath),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                        );
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16.0),
+            ],
+
+            // --- Tampilkan File Terlampir Lainnya ---
+            if (note.otherFilePaths != null && note.otherFilePaths!.isNotEmpty) ...[
+              if (note.imagePaths == null || note.imagePaths!.isEmpty) ... [
+                  const SizedBox(height: 16.0),
+                  const Divider(),
+                  const SizedBox(height: 16.0),
+              ],
+              const Text('File Terlampir:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: note.otherFilePaths!.map((filePath) {
+                  final fileName = p.basename(filePath);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insert_drive_file, color: Colors.blueGrey),
+                        const SizedBox(width: 12.0),
+                        Expanded(child: Text(fileName, overflow: TextOverflow.ellipsis)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16.0),
+            ],
+
+            // =====================================================
+            // === AKHIR DARI KODE BARU UNTUK MENAMPILKAN LAMPIRAN ===
+            // =====================================================
+
+
             const Divider(),
             const SizedBox(height: 16.0),
 
