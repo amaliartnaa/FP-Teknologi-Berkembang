@@ -1,42 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- Tambahkan import ini
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:notes_crud_app/services/firestore_service.dart'; // <-- Tambahkan import service
 import '../models/note.dart';
 import 'add_note_page.dart';
 import 'app_drawer.dart';
 import 'note_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  static List<Note> notes = [
-    Note(
-      id: '1',
-      title: 'Rangkuman Kalkulus',
-      subtitle: 'Turunan, Integral, dan Limit',
-      content: 'Ini adalah konten lengkap dari catatan kalkulus...',
-      tag: 'Math',
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Note(
-      id: '2',
-      title: 'Praktikum Fisika Dasar',
-      subtitle: 'Membahas tentang Termodinamika',
-      content: 'Ini adalah konten lengkap dari catatan fisika...',
-      tag: 'Physics',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      reminder: DateTime.now().add(const Duration(days: 1)),
-    ),
-     Note(
-      id: '3',
-      title: 'Catatan Arsip Kimia',
-      subtitle: 'Tentang senyawa organik',
-      content: 'Catatan ini diarsipkan.',
-      tag: 'Chemistry',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isArchived: true,
-    ),
-  ];
+  // Kita tidak lagi memerlukan list statis di sini.
+  // static List<Note> notes = [ ... ]; // <-- HAPUS BAGIAN INI
 
   final ValueNotifier<ThemeMode> themeNotifier;
   const HomePage({super.key, required this.themeNotifier});
@@ -46,6 +19,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Buat instance dari FirestoreService
+  final FirestoreService _firestoreService = FirestoreService();
+
+  List<Note> allNotes = [];
   List<Note> filteredNotes = [];
   String selectedTag = 'All';
   final TextEditingController searchController = TextEditingController();
@@ -56,43 +33,44 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _updateFilteredNotes();
-  }
-
-  void _updateFilteredNotes() {
-    setState(() {
-      List<Note> activeNotes = HomePage.notes
-          .where((note) => !note.isArchived && !note.isTrashed)
-          .toList();
-
-      List<Note> tagFiltered;
-      if (selectedTag == 'All') {
-        tagFiltered = activeNotes;
-      } else {
-        tagFiltered =
-            activeNotes.where((note) => note.tag == selectedTag).toList();
-      }
-
-      final query = searchController.text.toLowerCase();
-      if (query.isEmpty) {
-        filteredNotes = tagFiltered;
-      } else {
-        filteredNotes = tagFiltered
-            .where((note) =>
-                note.title.toLowerCase().contains(query) ||
-                note.subtitle.toLowerCase().contains(query))
-            .toList();
-      }
-      _updateAvailableTags(activeNotes);
-      _sortNotes();
+    // Kita tidak memanggil _updateFilteredNotes di sini lagi,
+    // karena StreamBuilder yang akan menangani pengambilan data awal.
+    searchController.addListener(() {
+      // Panggil setState agar UI di-rebuild saat user mengetik
+      setState(() {
+        // Logika filter akan dijalankan di dalam StreamBuilder
+      });
     });
   }
 
-  void _updateAvailableTags(List<Note> activeNotes) {
-    availableTags = activeNotes.map((note) => note.tag).toSet();
-  }
+  void _filterAndSortNotes(List<Note> notes) {
+    // Fungsi ini sekarang menerima list notes dari StreamBuilder
+    // dan melakukan filter/sort berdasarkan state widget.
 
-  void _sortNotes() {
+    List<Note> activeNotes =
+        notes.where((note) => !note.isArchived && !note.isTrashed).toList();
+
+    availableTags = activeNotes.map((note) => note.tag).toSet();
+
+    List<Note> tagFiltered;
+    if (selectedTag == 'All') {
+      tagFiltered = activeNotes;
+    } else {
+      tagFiltered =
+          activeNotes.where((note) => note.tag == selectedTag).toList();
+    }
+
+    final query = searchController.text.toLowerCase();
+    if (query.isEmpty) {
+      filteredNotes = tagFiltered;
+    } else {
+      filteredNotes = tagFiltered
+          .where((note) =>
+              note.title.toLowerCase().contains(query) ||
+              note.subtitle.toLowerCase().contains(query))
+          .toList();
+    }
+
     if (sortOrder == 'asc') {
       filteredNotes.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
     } else {
@@ -100,34 +78,36 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Navigasi ke AddNotePage tidak perlu diubah secara signifikan
   Future<void> _addOrEditNote(Note? note) async {
-    final result = await Navigator.push<Note>(
+    // Navigasi saja. StreamBuilder akan otomatis memperbarui UI
+    // jika ada data yang berubah setelah kembali dari halaman ini.
+    await Navigator.push<Note>(
       context,
       MaterialPageRoute(
         builder: (context) => AddNotePage(note: note),
       ),
     );
-    if (result != null) {
-      if (note != null) {
-        final index = HomePage.notes.indexWhere((n) => n.id == result.id);
-        if (index != -1) {
-          HomePage.notes[index] = result;
-        }
-      } else {
-        HomePage.notes.add(result);
-      }
-      _updateFilteredNotes();
-    }
   }
 
+  // Ubah method ini untuk memanggil FirestoreService
   void _moveToTrash(Note note) {
     note.isTrashed = true;
-    _updateFilteredNotes();
+    _firestoreService.updateNote(note);
+    // Tidak perlu setState, StreamBuilder akan handle
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Note moved to trash.')),
+    );
   }
 
+  // Ubah method ini untuk memanggil FirestoreService
   void _archiveNote(Note note) {
     note.isArchived = true;
-    _updateFilteredNotes();
+    _firestoreService.updateNote(note);
+    // Tidak perlu setState, StreamBuilder akan handle
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Note archived.')),
+    );
   }
 
   void _showFilterSheet() {
@@ -158,7 +138,6 @@ class _HomePageState extends State<HomePage> {
                     onSelected: (bool selected) {
                       setState(() {
                         selectedTag = 'All';
-                        _updateFilteredNotes();
                       });
                       Navigator.pop(context);
                     },
@@ -169,7 +148,6 @@ class _HomePageState extends State<HomePage> {
                         onSelected: (bool selected) {
                           setState(() {
                             selectedTag = tag;
-                            _updateFilteredNotes();
                           });
                           Navigator.pop(context);
                         },
@@ -192,6 +170,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // ... (Kode AppBar Anda tidak berubah, bisa disalin dari file lama)
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
@@ -206,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                   hintText: 'Cari catatan...',
                   border: InputBorder.none,
                 ),
-                onChanged: (value) => _updateFilteredNotes(),
+                onChanged: (value) => setState(() {}),
               )
             : const Text('SiCatat'),
         centerTitle: true,
@@ -218,7 +197,6 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       _isSearching = false;
                       searchController.clear();
-                      _updateFilteredNotes();
                     });
                   },
                 ),
@@ -240,7 +218,6 @@ class _HomePageState extends State<HomePage> {
                   onSelected: (String value) {
                     setState(() {
                       sortOrder = value;
-                      _sortNotes();
                     });
                   },
                   itemBuilder: (BuildContext context) => [
@@ -253,8 +230,33 @@ class _HomePageState extends State<HomePage> {
               ],
       ),
       drawer: AppDrawer(themeNotifier: widget.themeNotifier),
-      body: filteredNotes.isEmpty
-          ? Center(
+      // INI BAGIAN UTAMA YANG BERUBAH: MENGGUNAKAN StreamBuilder
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestoreService.getNotesStream(),
+        builder: (context, snapshot) {
+          // --- Handle Loading dan Error ---
+          if (snapshot.hasError) {
+            return const Center(child: Text('Terjadi kesalahan.'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // --- Ubah data Firestore menjadi List<Note> ---
+          allNotes = snapshot.data!.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            return Note.fromMap({
+              ...data,
+              'id': doc.id, // Ambil ID dokumen dari Firestore
+            });
+          }).toList();
+
+          // --- Jalankan logika filter dan sort di sini ---
+          _filterAndSortNotes(allNotes);
+
+          // --- Tampilkan UI berdasarkan `filteredNotes` ---
+          if (filteredNotes.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -265,134 +267,124 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    "Catatan masih kosong",
+                    "Catatan tidak ditemukan",
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Tekan tombol '+' untuk membuat catatan pertamamu.",
+                    "Coba kata kunci lain atau buat catatan baru.",
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: filteredNotes.length,
-              itemBuilder: (context, index) {
-                final note = filteredNotes[index];
-                return Dismissible(
-                  key: Key(note.id),
-                  background: Container(
-                    color: Colors.red.shade400,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    alignment: Alignment.centerLeft,
-                    child: const Icon(Icons.delete_sweep, color: Colors.white),
-                  ),
-                  secondaryBackground: Container(
-                    color: Colors.orange.shade400,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    alignment: Alignment.centerRight,
-                    child: const Icon(Icons.archive, color: Colors.white),
-                  ),
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      _archiveNote(note);
-                    } else {
-                      _moveToTrash(note);
-                    }
-                  },
-                  child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    margin: const EdgeInsets.symmetric(vertical: 6.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _getColorForTag(note.tag).withAlpha(77),
-                            _getColorForTag(note.tag).withAlpha(26),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16.0),
-                        title: Text(note.title,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18)),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(note.subtitle,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis),
-                              if (note.reminder != null) ...[
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Icon(Icons.notifications,
-                                        size: 16,
-                                        color:
-                                            Theme.of(context).primaryColor),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      DateFormat('d MMM, h:mm a')
-                                          .format(note.reminder!),
-                                      style: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        trailing: Chip(
-                          label: Text(
-                            note.tag,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor:
-                              _getColorForTag(note.tag).withAlpha(179),
-                          side: BorderSide.none,
-                        ),
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => NoteDetailPage(note: note),
-                            ),
-                          );
+            );
+          }
 
-                          if (result == 'archive') {
-                            _archiveNote(note);
-                          } else if (result == 'delete') {
-                            _moveToTrash(note);
-                          } else if (result is Note) {
-                            final index = HomePage.notes.indexWhere((n) => n.id == result.id);
-                            if (index != -1) {
-                              HomePage.notes[index] = result;
-                            }
-                            _updateFilteredNotes();
-                          }
-                        },
+          return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: filteredNotes.length,
+            itemBuilder: (context, index) {
+              final note = filteredNotes[index];
+              return Dismissible(
+                key: Key(note.id),
+                background: Container(
+                  color: Colors.red.shade400,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: Alignment.centerLeft,
+                  child: const Icon(Icons.delete_sweep, color: Colors.white),
+                ),
+                secondaryBackground: Container(
+                  color: Colors.orange.shade400,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: Alignment.centerRight,
+                  child: const Icon(Icons.archive, color: Colors.white),
+                ),
+                onDismissed: (direction) {
+                  if (direction == DismissDirection.endToStart) {
+                    _archiveNote(note);
+                  } else {
+                    _moveToTrash(note);
+                  }
+                },
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  margin: const EdgeInsets.symmetric(vertical: 6.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _getColorForTag(note.tag).withAlpha(77),
+                          _getColorForTag(note.tag).withAlpha(26),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16.0),
+                      title: Text(note.title,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(note.subtitle,
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
+                            if (note.reminder != null) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Icon(Icons.notifications,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    DateFormat('d MMM, h:mm a')
+                                        .format(note.reminder!),
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      trailing: Chip(
+                        label: Text(
+                          note.tag,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor:
+                            _getColorForTag(note.tag).withAlpha(179),
+                        side: BorderSide.none,
+                      ),
+                      onTap: () async {
+                        // Navigasi ke detail page tidak perlu diubah
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NoteDetailPage(note: note),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEditNote(null),
         child: const Icon(Icons.add),

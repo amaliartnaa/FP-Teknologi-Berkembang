@@ -1,3 +1,5 @@
+// lib/screens/app_drawer.dart (Lengkap & Diperbaiki)
+
 import 'package:flutter/material.dart';
 import 'package:notes_crud_app/screens/archive_page.dart';
 import 'package:notes_crud_app/screens/home_page.dart';
@@ -46,7 +48,6 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),
@@ -66,7 +67,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined),
             title: const Text('Pusat Pengingat'),
@@ -75,15 +75,13 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ReminderCenterPage(
-                    allNotes: HomePage.notes,
-                  ),
+                  // ReminderCenterPage akan mengambil datanya sendiri
+                  builder: (context) => const ReminderCenterPage(),
                 ),
               );
             },
           ),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.archive),
             title: const Text('Archive'),
@@ -100,7 +98,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.delete),
             title: const Text('Trash'),
@@ -117,7 +114,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.pie_chart),
             title: const Text('Statistics'),
@@ -136,7 +132,6 @@ class AppDrawer extends StatelessWidget {
           
           const Divider(),
           
-          // ignore: const_with_non_const
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),

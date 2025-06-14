@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/set_reminder_page.dart';
+import 'package:notes_crud_app/services/firestore_service.dart'; // <-- Import service
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -17,6 +18,9 @@ class AddNotePage extends StatefulWidget {
 }
 
 class _AddNotePageState extends State<AddNotePage> {
+  // Buat instance dari FirestoreService
+  final FirestoreService _firestoreService = FirestoreService();
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _subtitleController;
@@ -30,6 +34,7 @@ class _AddNotePageState extends State<AddNotePage> {
   DateTime? _reminder;
   List<String> _imagePaths = [];
   List<String> _otherFilePaths = [];
+  bool _isLoading = false; // State untuk loading indicator
 
   final Set<String> _tags = {'Math', 'Physics', 'Chemistry'};
 
@@ -70,10 +75,21 @@ class _AddNotePageState extends State<AddNotePage> {
     super.dispose();
   }
 
-  void _saveNote() {
+  // =======================================================================
+  // === FUNGSI INI YANG BERUBAH UNTUK BERINTERAKSI DENGAN FIRESTORE ===
+  // =======================================================================
+  Future<void> _saveNote() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true; // Tampilkan loading
+      });
+
+      // Jika sedang mengedit, gunakan ID yang sudah ada. Jika baru, ID akan dibuat oleh Firestore,
+      // jadi kita bisa gunakan string kosong sementara.
+      final noteId = widget.note?.id ?? '';
+
       final note = Note(
-        id: widget.note?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id: noteId,
         title: _titleController.text.trim(),
         subtitle: _subtitleController.text.trim(),
         content: _contentController.text.trim(),
@@ -86,11 +102,43 @@ class _AddNotePageState extends State<AddNotePage> {
         imagePaths: _imagePaths,
         otherFilePaths: _otherFilePaths,
       );
-      Navigator.pop(context, note);
+
+      try {
+        if (_isEditing) {
+          // Panggil service untuk UPDATE
+          await _firestoreService.updateNote(note);
+        } else {
+          // Panggil service untuk CREATE
+          await _firestoreService.addNote(note);
+        }
+
+        if (mounted) {
+          Navigator.pop(context); // Kembali ke halaman sebelumnya setelah berhasil
+        }
+      } catch (e) {
+        // Handle error jika ada
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save note: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false; // Sembunyikan loading
+          });
+        }
+      }
     }
   }
+  // =======================================================================
+  // === AKHIR DARI BAGIAN YANG BERUBAH ===
+  // =======================================================================
 
-  Future<void> _navigateToSetReminderPage() async {
+
+  // Fungsi-fungsi di bawah ini tidak perlu diubah karena hanya mengelola state lokal halaman.
+  // ... (semua fungsi lain seperti _navigateToSetReminderPage, _showEditTagDialog, _pickAndInsertImage, dll, tetap sama)
+    Future<void> _navigateToSetReminderPage() async {
     final result = await Navigator.push<DateTime>(
       context,
       MaterialPageRoute(
@@ -323,17 +371,28 @@ class _AddNotePageState extends State<AddNotePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Seluruh UI widget tidak perlu diubah
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Note' : 'Add Note'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveNote,
-          ),
+          // Tampilkan loading indicator di tombol save jika sedang loading
+          _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                      width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white)),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.save),
+                  onPressed: _saveNote,
+                ),
         ],
       ),
-      body: Form(
+      body: Stack(
+        children: [
+          // ... (Isi Form Anda tetap sama persis seperti kode lama)
+           Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
@@ -547,7 +606,17 @@ class _AddNotePageState extends State<AddNotePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+          // Tampilkan overlay loading jika _isLoading true
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: _isLoading ? null : FloatingActionButton(
         onPressed: _showAttachmentSourceDialog,
         mini: true,
         child: const Icon(Icons.attach_file),

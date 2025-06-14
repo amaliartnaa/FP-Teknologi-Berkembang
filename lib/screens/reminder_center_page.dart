@@ -1,47 +1,58 @@
+// lib/screens/reminder_center_page.dart (Lengkap & Diperbaiki)
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/note_detail_page.dart';
+import 'package:notes_crud_app/services/firestore_service.dart';
 
-class ReminderCenterPage extends StatefulWidget {
-  final List<Note> allNotes;
-
-  const ReminderCenterPage({super.key, required this.allNotes});
-
-  @override
-  State<ReminderCenterPage> createState() => _ReminderCenterPageState();
-}
-
-class _ReminderCenterPageState extends State<ReminderCenterPage> {
-  List<Note> _notesWithReminders = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _filterAndSortReminders();
-  }
-
-  void _filterAndSortReminders() {
-    setState(() {
-      _notesWithReminders = widget.allNotes
-          .where((note) =>
-              note.reminder != null && note.reminder!.isAfter(DateTime.now()))
-          .toList();
-
-      _notesWithReminders.sort((a, b) => a.reminder!.compareTo(b.reminder!));
-    });
-  }
+class ReminderCenterPage extends StatelessWidget {
+  // Constructor sekarang tidak butuh parameter
+  const ReminderCenterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final FirestoreService firestoreService = FirestoreService();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pusat Pengingat'),
         centerTitle: true,
       ),
-      body: _notesWithReminders.isEmpty
-          ? _buildEmptyState()
-          : _buildRemindersList(),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firestoreService.getNotesStream(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _buildEmptyState();
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allNotes = snapshot.data!.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Note.fromMap({...data, 'id': doc.id});
+          }).toList();
+
+          final notesWithReminders = allNotes
+              .where((note) =>
+                  note.reminder != null &&
+                  note.reminder!.isAfter(DateTime.now()) &&
+                  !note.isTrashed &&
+                  !note.isArchived)
+              .toList();
+
+          notesWithReminders
+              .sort((a, b) => a.reminder!.compareTo(b.reminder!));
+
+          if (notesWithReminders.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          return _buildRemindersList(context, notesWithReminders);
+        },
+      ),
     );
   }
 
@@ -66,12 +77,12 @@ class _ReminderCenterPageState extends State<ReminderCenterPage> {
     );
   }
 
-  Widget _buildRemindersList() {
+  Widget _buildRemindersList(BuildContext context, List<Note> notes) {
     return ListView.builder(
       padding: const EdgeInsets.all(8.0),
-      itemCount: _notesWithReminders.length,
+      itemCount: notes.length,
       itemBuilder: (context, index) {
-        final note = _notesWithReminders[index];
+        final note = notes[index];
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4.0),
           child: ListTile(

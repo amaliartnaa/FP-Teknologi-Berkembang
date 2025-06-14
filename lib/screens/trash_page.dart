@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_crud_app/models/note.dart';
-import 'package:notes_crud_app/screens/app_drawer.dart'; // <-- Perbaikan di sini
-import 'package:notes_crud_app/screens/home_page.dart';
+import 'package:notes_crud_app/screens/app_drawer.dart';
+import 'package:notes_crud_app/services/firestore_service.dart';
 
 class TrashPage extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
@@ -16,30 +17,31 @@ class TrashPage extends StatefulWidget {
 }
 
 class _TrashPageState extends State<TrashPage> {
-  List<Note> get _trashedNotes =>
-      HomePage.notes.where((note) => note.isTrashed).toList();
+  final FirestoreService _firestoreService = FirestoreService();
+
+  // Getter lokal tidak diperlukan lagi
+  // List<Note> get _trashedNotes => HomePage.notes.where((note) => note.isTrashed).toList();
 
   void _restoreNote(Note note) {
-    setState(() {
-      final index = HomePage.notes.indexWhere((n) => n.id == note.id);
-      if (index != -1) {
-        HomePage.notes[index].isTrashed = false;
-      }
-    });
+    // Panggil service untuk mengubah isTrashed menjadi false
+    note.isTrashed = false;
+    _firestoreService.updateNote(note);
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Note restored.')));
   }
 
   void _deleteNotePermanently(Note note) {
-    setState(() {
-      HomePage.notes.removeWhere((n) => n.id == note.id);
-    });
+    // Panggil service untuk menghapus note dari Firestore
+    _firestoreService.deleteNote(note.id);
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Note deleted permanently')));
   }
 
-  void _emptyTrash() {
-    setState(() {
-      HomePage.notes.removeWhere((note) => note.isTrashed);
-    });
+  void _emptyTrash(List<Note> trashedNotes) {
+    // Hapus semua note yang ada di list sampah
+    for (final note in trashedNotes) {
+      _firestoreService.deleteNote(note.id);
+    }
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Trash has been emptied')));
   }
@@ -47,68 +49,91 @@ class _TrashPageState extends State<TrashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trash'),
-        actions: [
-          if (_trashedNotes.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: 'Empty Trash',
-              onPressed: () => _showEmptyTrashConfirmation(context),
-            ),
-        ],
-      ),
       drawer: AppDrawer(
         themeNotifier: widget.themeNotifier,
       ),
-      body: _trashedNotes.isEmpty
-          ? const Center(
-              child: Text(
-                'Trash is empty.',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            )
-          : ListView.builder(
-              itemCount: _trashedNotes.length,
-              itemBuilder: (context, index) {
-                final note = _trashedNotes[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(note.title),
-                    subtitle: Text(
-                      note.subtitle, // Menampilkan subtitle
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: PopupMenuButton(
-                      onSelected: (value) {
-                        if (value == 'restore') {
-                          _restoreNote(note);
-                        } else if (value == 'delete') {
-                          _deleteNotePermanently(note);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'restore',
-                          child: Text('Restore'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete Permanently',
-                              style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
+      // Gunakan StreamBuilder untuk mendapatkan data real-time
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestoreService.getNotesStream(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Ambil semua note dari snapshot, lalu filter yang 'isTrashed'
+          final allNotes = snapshot.data!.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            return Note.fromMap({...data, 'id': doc.id});
+          }).toList();
+
+          final trashedNotes = allNotes.where((note) => note.isTrashed).toList();
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Trash'),
+              actions: [
+                if (trashedNotes.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.delete_sweep),
+                    tooltip: 'Empty Trash',
+                    onPressed: () => _showEmptyTrashConfirmation(context, trashedNotes),
                   ),
-                );
-              },
+              ],
             ),
+            body: trashedNotes.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Trash is empty.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: trashedNotes.length,
+                    itemBuilder: (context, index) {
+                      final note = trashedNotes[index];
+                      return Card(
+                        margin: const EdgeInsets.all(8.0),
+                        child: ListTile(
+                          title: Text(note.title),
+                          subtitle: Text(
+                            note.subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: PopupMenuButton(
+                            onSelected: (value) {
+                              if (value == 'restore') {
+                                _restoreNote(note);
+                              } else if (value == 'delete') {
+                                _deleteNotePermanently(note);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'restore',
+                                child: Text('Restore'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete Permanently',
+                                    style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          );
+        },
+      ),
     );
   }
 
-  void _showEmptyTrashConfirmation(BuildContext context) {
+  void _showEmptyTrashConfirmation(BuildContext context, List<Note> trashedNotes) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -126,7 +151,7 @@ class _TrashPageState extends State<TrashPage> {
                   style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.pop(context);
-                _emptyTrash();
+                _emptyTrash(trashedNotes);
               },
             ),
           ],
