@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_crud_app/services/firestore_service.dart';
+import 'package:notes_crud_app/services/notification_service.dart';
 import '../models/note.dart';
 import 'add_note_page.dart';
 import 'app_drawer.dart';
@@ -82,6 +83,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _moveToTrash(Note note) {
+    // Batalkan notifikasi terlebih dahulu
+    final int notificationId = note.id.hashCode;
+    NotificationService().cancelNotification(notificationId);
+    
+    // Baru update status catatan di Firestore
     note.isTrashed = true;
     _firestoreService.updateNote(note);
     ScaffoldMessenger.of(context).showSnackBar(
