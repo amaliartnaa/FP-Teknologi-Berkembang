@@ -103,28 +103,27 @@ class _AddNotePageState extends State<AddNotePage> {
       );
 
       try {
+        String finalNoteId; // Variabel untuk menampung ID final
+
         if (_isEditing) {
           await _firestoreService.updateNote(note);
-          noteIdForNotification = note.id; // Pastikan menggunakan ID yang benar
+          finalNoteId = note.id; // Gunakan ID yang sudah ada saat mengedit
         } else {
-          // Saat menambahkan, kita dapatkan ID yang baru dibuat oleh Firestore
+          // Panggil addNote dan simpan hasilnya (sebuah DocumentReference)
           final newNoteDoc = await _firestoreService.addNote(note);
-          noteIdForNotification = newNoteDoc.id;
+          finalNoteId = newNoteDoc.id; // Ambil ID dari dokumen baru
         }
 
-        // Gunakan hash code dari ID string sebagai ID integer unik untuk notifikasi
-        final int notificationId = noteIdForNotification.hashCode;
+        final int notificationId = finalNoteId.hashCode;
 
         if (_reminder != null && tz.TZDateTime.from(_reminder!, tz.local).isAfter(tz.TZDateTime.now(tz.local))) {
-          // Jadwalkan notifikasi jika ada reminder di masa depan
           NotificationService().scheduleNotification(
             notificationId,
             "Pengingat: ${note.title}",
-            note.subtitle.isNotEmpty ? note.subtitle : note.content, // Gunakan subtitle jika ada
+            note.subtitle.isNotEmpty ? note.subtitle : note.content,
             _reminder!,
           );
         } else {
-          // Batalkan notifikasi jika reminder dihapus atau sudah lewat
           NotificationService().cancelNotification(notificationId);
         }
 
