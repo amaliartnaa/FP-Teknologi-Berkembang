@@ -10,7 +10,7 @@ class FirestoreService {
     return _db.collection('users').doc(uid).collection('notes');
   }
 
-  Future<void> addNote(Note note) {
+  Future<DocumentReference> addNote(Note note) {
     return _userNotesCollection.add(note.toMap());
   }
 
