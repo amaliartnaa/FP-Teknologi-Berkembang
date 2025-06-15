@@ -7,7 +7,8 @@ import 'package:notes_crud_app/screens/note_detail_page.dart';
 import 'package:notes_crud_app/services/firestore_service.dart';
 
 class ReminderCenterPage extends StatelessWidget {
-  const ReminderCenterPage({super.key});
+  final List<Note> allNotes;
+  const ReminderCenterPage({super.key, required this.allNotes});
 
   @override
   Widget build(BuildContext context) {
