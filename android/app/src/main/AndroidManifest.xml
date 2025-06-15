@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     
     <!-- Izin untuk getaran notifikasi -->
-    <uses-permission android.name="android.permission.VIBRATE" />    
+    <uses-permission android:name="android.permission.VIBRATE" />    
 
     <application
         android:label="notes_crud_app"
