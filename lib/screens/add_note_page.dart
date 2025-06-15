@@ -12,6 +12,8 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'full_image_screen_page.dart';
+
 class AddNotePage extends StatefulWidget {
   final Note? note;
   const AddNotePage({super.key, this.note});
@@ -528,21 +530,31 @@ class _AddNotePageState extends State<AddNotePage> {
                 children: _imagePaths.map((imagePath) {
                   return Stack(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.file(
-                          File(imagePath),
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 100,
-                              height: 100,
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.broken_image, size: 40),
-                            );
-                          },
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FullScreenImagePage(imagePath: imagePath),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.file(
+                            File(imagePath),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 100,
+                                height: 100,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.broken_image, size: 40),
+                              );
+                            },
+                          ),
                         ),
                       ),
                       Positioned(
@@ -622,7 +634,6 @@ class _AddNotePageState extends State<AddNotePage> {
       ),
       floatingActionButton: _isLoading ? null : FloatingActionButton(
         onPressed: _showAttachmentSourceDialog,
-        mini: true,
         child: const Icon(Icons.attach_file),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniStartFloat,
