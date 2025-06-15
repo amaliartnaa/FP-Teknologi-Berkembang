@@ -221,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
       ),
-      drawer: AppDrawer(themeNotifier: widget.themeNotifier),
+      drawer: AppDrawer(themeNotifier: widget.themeNotifier, allNotes: allNotes),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
