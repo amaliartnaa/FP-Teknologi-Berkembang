@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:notes_crud_app/models/note.dart';
 import 'package:notes_crud_app/screens/set_reminder_page.dart';
 import 'package:notes_crud_app/services/firestore_service.dart';
+import 'package:notes_crud_app/services/notification_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -82,10 +84,10 @@ class _AddNotePageState extends State<AddNotePage> {
         _isLoading = true;
       });
 
-      final noteId = widget.note?.id ?? '';
+      String noteIdForNotification = widget.note?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
       final note = Note(
-        id: noteId,
+        id: widget.note?.id ?? '', // ID akan di-generate oleh Firestore jika kosong
         title: _titleController.text.trim(),
         subtitle: _subtitleController.text.trim(),
         content: _contentController.text.trim(),
@@ -103,8 +105,27 @@ class _AddNotePageState extends State<AddNotePage> {
       try {
         if (_isEditing) {
           await _firestoreService.updateNote(note);
+          noteIdForNotification = note.id; // Pastikan menggunakan ID yang benar
         } else {
-          await _firestoreService.addNote(note);
+          // Saat menambahkan, kita dapatkan ID yang baru dibuat oleh Firestore
+          final newNoteDoc = await _firestoreService.addNote(note);
+          noteIdForNotification = newNoteDoc.id;
+        }
+
+        // Gunakan hash code dari ID string sebagai ID integer unik untuk notifikasi
+        final int notificationId = noteIdForNotification.hashCode;
+
+        if (_reminder != null && tz.TZDateTime.from(_reminder!, tz.local).isAfter(tz.TZDateTime.now(tz.local))) {
+          // Jadwalkan notifikasi jika ada reminder di masa depan
+          NotificationService().scheduleNotification(
+            notificationId,
+            "Pengingat: ${note.title}",
+            note.subtitle.isNotEmpty ? note.subtitle : note.content, // Gunakan subtitle jika ada
+            _reminder!,
+          );
+        } else {
+          // Batalkan notifikasi jika reminder dihapus atau sudah lewat
+          NotificationService().cancelNotification(notificationId);
         }
 
         if (mounted) {
