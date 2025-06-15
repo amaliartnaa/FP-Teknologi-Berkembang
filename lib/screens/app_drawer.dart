@@ -5,13 +5,17 @@ import 'package:notes_crud_app/screens/reminder_center_page.dart';
 import 'package:notes_crud_app/screens/settings_page.dart';
 import 'package:notes_crud_app/screens/stats_page.dart';
 import 'package:notes_crud_app/screens/trash_page.dart';
+import 'package:notes_crud_app/screens/reminder_center_page.dart';
+import 'package:notes_crud_app/models/note.dart';
 
 class AppDrawer extends StatelessWidget {
   final ValueNotifier<ThemeMode> themeNotifier;
+  final List<Note> allNotes;
 
   const AppDrawer({
     super.key,
     required this.themeNotifier,
+    required this.allNotes,
   });
 
   @override
@@ -67,13 +71,13 @@ class AppDrawer extends StatelessWidget {
           
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Pusat Pengingat'),
+            title: const Text('Reminder Center'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ReminderCenterPage(),
+                  builder: (context) => ReminderCenterPage(allNotes: allNotes),
                 ),
               );
             },
