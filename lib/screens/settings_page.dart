@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Settings'),
       ),
       drawer: AppDrawer(
-        themeNotifier: widget.themeNotifier,
+        themeNotifier: widget.themeNotifier, allNotes: const [],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
