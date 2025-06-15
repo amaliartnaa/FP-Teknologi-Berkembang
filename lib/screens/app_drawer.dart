@@ -15,7 +15,7 @@ class AppDrawer extends StatelessWidget {
   const AppDrawer({
     super.key,
     required this.themeNotifier,
-    this.allNotes = const [],,
+    required this.allNotes,
   });
 
   @override
