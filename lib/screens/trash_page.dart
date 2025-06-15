@@ -45,7 +45,7 @@ class _TrashPageState extends State<TrashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(
-        themeNotifier: widget.themeNotifier,
+        themeNotifier: widget.themeNotifier, allNotes: const [],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
