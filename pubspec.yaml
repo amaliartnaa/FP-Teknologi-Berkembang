@@ -19,6 +19,9 @@ dependencies:
   firebase_core: ^3.13.1
   firebase_auth: ^5.6.0
   cloud_firestore: ^5.6.9
+  flutter_local_notifications: ^17.1.2 
+  timezone: ^0.9.3
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -27,6 +30,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # DITAMBAHKAN: Bagian untuk mendaftarkan aset (gambar, font, dll.)
+  ## DITAMBAHKAN: Bagian untuk mendaftarkan aset (gambar, font, dll.)
   assets:
     - assets/
