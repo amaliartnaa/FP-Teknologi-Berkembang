@@ -22,7 +22,7 @@ class StatsPage extends StatelessWidget {
         title: const Text('Statistics'),
       ),
       drawer: AppDrawer(
-        themeNotifier: widget.themeNotifier, allNotes: const [],
+        themeNotifier: themeNotifier, allNotes: const [],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
