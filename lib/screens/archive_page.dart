@@ -36,7 +36,7 @@ class _ArchivePageState extends State<ArchivePage> {
         title: const Text('Archived Notes'),
       ),
       drawer: AppDrawer(
-        themeNotifier: widget.themeNotifier,
+        themeNotifier: widget.themeNotifier, allNotes: const [],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
