@@ -12,8 +12,7 @@
 
 ## 📝 Brief Description
 
-**SiCatat** is a mobile application built with **Flutter**, featuring core CRUD (Create, Read, Update, Delete) functionality for managing notes. In addition to basic note-taking, the app also includes **camera and file integration** to allow users to attach photos or documents to their notes.  
-This app was developed as the final project for the **Emerging Technologies** course.
+**SiCatat** is a mobile application built with **Flutter**, featuring core CRUD (Create, Read, Update, Delete) functionality for managing notes. In addition to basic note-taking, the app also includes **camera and file integration** to allow users to attach photos or documents to their notes. This app was developed as the final project for the **Emerging Technologies** course.
 
 ## 🛠️ Tech Stack & Tools
 
