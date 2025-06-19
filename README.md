@@ -1,37 +1,38 @@
 # 📒 SiCatat
 
-## 👥 Anggota Kelompok
+## 👥 Team Members
 
-| Nama                      | NRP        |
-|---------------------------|------------|
-| Andika Cahya S            | 5026221013 |
-| Muhammad Fauzan           | 5026221080 |
-| Adithya Eka Pramudita     | 5026221164 |
-| Ratna Amalia Azzahra      | 5026221209 |
-| Rafa Akbar                | 5026221213 |
+| Name                      | Student ID  |
+|---------------------------|-------------|
+| Andika Cahya S            | 5026221013  |
+| Muhammad Fauzan           | 5026221080  |
+| Adithya Eka Pramudita     | 5026221164  |
+| Ratna Amalia Azzahra      | 5026221209  |
+| Rafa Akbar                | 5026221213  |
 
-## 📝 Deskripsi Singkat
+## 📝 Brief Description
 
-SiCatat adalah aplikasi mobile berbasis Flutter yang memiliki fitur utama berupa CRUD (Create, Read, Update, Delete) untuk mencatat dan mengelola catatan. Aplikasi ini dikembangkan sebagai final project mata kuliah **Teknologi Berkembang**.
+**SiCatat** is a mobile application built with **Flutter**, featuring core CRUD (Create, Read, Update, Delete) functionality for managing notes. In addition to basic note-taking, the app also includes **camera and file integration** to allow users to attach photos or documents to their notes.  
+This app was developed as the final project for the **Emerging Technologies** course.
 
 ## 🛠️ Tech Stack & Tools
 
-- **Flutter** – untuk pengembangan aplikasi mobile cross-platform
-- **Firebase Authentication** – untuk sistem login/register pengguna
-- **Cloud Firestore** – sebagai database real-time berbasis dokumen
-- **Dart** – bahasa pemrograman utama
+- **Flutter** – for cross-platform mobile app development
+- **Firebase Authentication** – for user login/register system
+- **Cloud Firestore** – as a real-time document-based database
+- **Dart** – the main programming language
 
 ## 🚀 Quick Start
 
-Ikuti langkah-langkah berikut untuk menjalankan project secara lokal:
+Follow these steps to run the project locally:
 
-1. **Clone repository:**
+1. **Clone the repository:**
 
     ```bash
     git clone https://github.com/amaliartnaa/FP-Teknologi-Berkembang.git
     ```
 
-2. **Masuk ke folder project:**
+2. **Navigate to the project folder:**
 
     ```bash
     cd FP-Teknologi-Berkembang
@@ -43,10 +44,10 @@ Ikuti langkah-langkah berikut untuk menjalankan project secara lokal:
     flutter pub get
     ```
 
-4. **Jalankan aplikasi di emulator atau device:**
+4. **Run the app on an emulator or device:**
 
     ```bash
     flutter run
     ```
 
-> Pastikan kamu sudah menambahkan file `google-services.json` di folder `android/app` dan melakukan setup Firebase sesuai petunjuk pada [Firebase Console](https://console.firebase.google.com/).
+> Make sure you have added the `google-services.json` file inside the `android/app` directory and completed Firebase setup as instructed on the [Firebase Console](https://console.firebase.google.com/).
